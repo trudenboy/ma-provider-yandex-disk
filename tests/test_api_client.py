@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 from music_assistant_models.errors import LoginFailed
 
@@ -45,7 +47,7 @@ class _AuthStub:
 async def test_validate_refreshes_and_accepts_token() -> None:
     """validate() pulls a fresh access token and accepts a valid one."""
     api = YandexDiskApi.__new__(YandexDiskApi)
-    api._auth = _AuthStub()  # type: ignore[assignment]
+    api._auth = cast("Any", _AuthStub())
 
     class _Client:
         token = ""
@@ -53,7 +55,7 @@ async def test_validate_refreshes_and_accepts_token() -> None:
         async def check_token(self) -> bool:
             return True
 
-    api._client = _Client()  # type: ignore[assignment]
+    api._client = cast("Any", _Client())
     await api.validate()
     assert api._client.token == "at"  # refreshed onto the yadisk client
 
@@ -62,7 +64,7 @@ async def test_validate_refreshes_and_accepts_token() -> None:
 async def test_validate_rejected_token_raises() -> None:
     """A token the API rejects surfaces as LoginFailed."""
     api = YandexDiskApi.__new__(YandexDiskApi)
-    api._auth = _AuthStub()  # type: ignore[assignment]
+    api._auth = cast("Any", _AuthStub())
 
     class _Client:
         token = ""
@@ -70,6 +72,6 @@ async def test_validate_rejected_token_raises() -> None:
         async def check_token(self) -> bool:
             return False
 
-    api._client = _Client()  # type: ignore[assignment]
+    api._client = cast("Any", _Client())
     with pytest.raises(LoginFailed):
         await api.validate()
