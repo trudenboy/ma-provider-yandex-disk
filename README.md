@@ -15,7 +15,7 @@
 
 Стриминг и синхронизация вашей личной музыки, хранящейся на **Яндекс Диске**, в Music Assistant.
 
-Provider that streams and syncs your personal music files stored on **Yandex Disk** into Music Assistant. Built on Music Assistant's shared `CloudFileSystemProvider` (the same base as the built-in Google Drive provider) and the fleet's shared Yandex login library.
+Provider that streams and syncs your personal music files stored on **Yandex Disk** into Music Assistant. Built on Music Assistant's shared `CloudFileSystemProvider` (the same base as the built-in Google Drive provider), authenticating with your own Yandex OAuth application (read-only Disk scope) — the same model the Google Drive provider uses.
 
 ## Возможности / Features
 
