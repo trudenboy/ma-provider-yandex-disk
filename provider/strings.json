@@ -7,21 +7,16 @@
     "client_secret": {
       "label": "Yandex OAuth Client Secret"
     },
+    "auth_code": {
+      "label": "Confirmation code",
+      "description": "Open the link, allow access, then paste the confirmation code Yandex shows and press Authorize."
+    },
     "auth": {
-      "label": "Authorize with Yandex",
-      "description": "Sign in and grant Music Assistant read-only access to your Yandex Disk files.",
-      "action_label": "Authorize with Yandex"
+      "label": "Authorize with the pasted code",
+      "action_label": "Authorize"
     },
     "refresh_token": {
       "label": "Refresh token"
-    },
-    "auth_code": {
-      "label": "Confirmation code (manual authorization)",
-      "description": "Advanced: open the link, allow access, then paste the confirmation code Yandex shows and press the manual authorize action."
-    },
-    "auth_manual": {
-      "label": "Authorize with pasted code",
-      "action_label": "Authorize with pasted code"
     },
     "root_path": {
       "label": "Root folder to scan",

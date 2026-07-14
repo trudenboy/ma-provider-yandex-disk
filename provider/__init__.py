@@ -23,9 +23,7 @@ from music_assistant.providers.filesystem_local.constants import (
 
 from . import auth
 from .constants import (
-    CALLBACK_REDIRECT_URL,
     CONF_ACTION_AUTH,
-    CONF_ACTION_AUTH_MANUAL,
     CONF_AUTH_CODE,
     CONF_CLIENT_ID,
     CONF_CLIENT_SECRET,
@@ -97,49 +95,33 @@ async def get_config_entries(
             label="Yandex OAuth Client Secret",
             value=values.get(CONF_CLIENT_SECRET),
         ),
-        ConfigEntry(
-            key=CONF_ACTION_AUTH,
-            type=ConfigEntryType.ACTION,
-            label="Authorize with Yandex",
-            description=(
-                "Sign in and grant read-only access. Requires "
-                f"'{CALLBACK_REDIRECT_URL}' to be registered as a redirect "
-                "URI in your Yandex app."
-            ),
-            action=CONF_ACTION_AUTH,
-            action_label="Authorize with Yandex",
-        ),
-        ConfigEntry(
-            key=CONF_REFRESH_TOKEN,
-            type=ConfigEntryType.SECURE_STRING,
-            required=True,
-            # filled by the authorize action(s) above; hidden from the user
-            hidden=True,
-            value=values.get(CONF_REFRESH_TOKEN),
-        ),
-        # advanced fallback (variant B): paste the confirmation code shown by
-        # Yandex — no redirect URI needs to be registered
+        # paste the confirmation code shown by Yandex — no redirect URI needed
         ConfigEntry(
             key=CONF_AUTH_CODE,
             type=ConfigEntryType.STRING,
             required=False,
-            advanced=True,
-            label="Confirmation code (manual authorization)",
+            label="Confirmation code",
             description=(
-                "Advanced: open the link, allow access, then paste the "
-                "confirmation code Yandex shows and press the manual authorize "
-                "action below."
+                "Open the link, allow access, then paste the confirmation code "
+                "Yandex shows and press Authorize below."
             ),
             help_link=auth.manual_authorize_url(client_id) if client_id else None,
             value=values.get(CONF_AUTH_CODE),
         ),
         ConfigEntry(
-            key=CONF_ACTION_AUTH_MANUAL,
+            key=CONF_ACTION_AUTH,
             type=ConfigEntryType.ACTION,
-            advanced=True,
-            label="Authorize with pasted code",
-            action=CONF_ACTION_AUTH_MANUAL,
-            action_label="Authorize with pasted code",
+            label="Authorize with the pasted code",
+            action=CONF_ACTION_AUTH,
+            action_label="Authorize",
+        ),
+        ConfigEntry(
+            key=CONF_REFRESH_TOKEN,
+            type=ConfigEntryType.SECURE_STRING,
+            required=True,
+            # filled by the authorize action above; hidden from the user
+            hidden=True,
+            value=values.get(CONF_REFRESH_TOKEN),
         ),
         ConfigEntry(
             key=CONF_ROOT_PATH,
@@ -169,14 +151,14 @@ async def _handle_auth_action(
     action: str | None,
     values: dict[str, ConfigValueType],
 ) -> None:
-    """Run the selected authorization action, writing the refresh token in place.
+    """Exchange the pasted code for a refresh token, writing it in place.
 
     :param mass: The MusicAssistant instance.
     :param instance_id: Existing instance id (for re-fetching a masked secret).
     :param action: The action key from the config UI.
     :param values: The config-flow values (mutated).
     """
-    if action not in (CONF_ACTION_AUTH, CONF_ACTION_AUTH_MANUAL):
+    if action != CONF_ACTION_AUTH:
         return
     client_id = str(values.get(CONF_CLIENT_ID) or "")
     client_secret = str(values.get(CONF_CLIENT_SECRET) or "")
@@ -188,13 +170,8 @@ async def _handle_auth_action(
     if not client_id or not client_secret:
         raise LoginFailed("Enter the Yandex OAuth Client ID and Client Secret first")
 
-    if action == CONF_ACTION_AUTH and values.get("session_id"):
-        values[CONF_REFRESH_TOKEN] = await auth.authorize(
-            mass, str(values["session_id"]), client_id, client_secret
-        )
-    elif action == CONF_ACTION_AUTH_MANUAL:
-        values[CONF_REFRESH_TOKEN] = await auth.exchange_manual_code(
-            mass, str(values.get(CONF_AUTH_CODE) or ""), client_id, client_secret
-        )
-        # the one-time code must not be persisted
-        values[CONF_AUTH_CODE] = None
+    values[CONF_REFRESH_TOKEN] = await auth.exchange_manual_code(
+        mass, str(values.get(CONF_AUTH_CODE) or ""), client_id, client_secret
+    )
+    # the one-time code must not be persisted
+    values[CONF_AUTH_CODE] = None

@@ -1,20 +1,14 @@
 """OAuth glue between Music Assistant and the Yandex Disk REST API.
 
-Mirrors the Google Drive provider: the user registers their own Yandex OAuth
-application (scope ``cloud_api:disk.read``) and authenticates with the
-authorization-code flow, which yields a refresh token. :class:`MAYandexDiskAuth`
-then keeps a valid access token, refreshing it with Yandex when it expires.
+Mirrors the Google Drive provider's token handling, using Yandex's
+confirmation-code flow: the user registers their own Yandex OAuth application
+(scope ``cloud_api:disk.read``), opens the authorize URL, and pastes the code
+Yandex shows on its ``verification_code`` page. :func:`exchange_manual_code`
+trades that code for a refresh token; :class:`MAYandexDiskAuth` then keeps a
+valid access token, refreshing it with Yandex when it expires.
 
-Two ways to obtain the authorization code:
-
-* **Variant A (default)** — :func:`authorize`: a browser popup via
-  :class:`AuthenticationHelper`; Yandex redirects the ``code`` to the fixed MA
-  relay (``music-assistant.io/callback``) which forwards it to the local
-  callback smuggled in ``state``. The user registers that relay as a redirect
-  URI in their app.
-* **Variant B (advanced)** — :func:`exchange_manual_code`: the user opens the
-  authorize URL themselves (redirect defaults to Yandex's ``verification_code``
-  page), copies the shown code and pastes it; no redirect URI to register.
+This flow needs no redirect URI to be registered (Yandex displays the code),
+which is why it is the only flow offered.
 """
 
 from __future__ import annotations
@@ -26,10 +20,7 @@ from urllib.parse import urlencode
 from aiohttp import ClientError
 from music_assistant_models.errors import LoginFailed, ProviderUnavailableError
 
-from music_assistant.helpers.auth import AuthenticationHelper
-
 from .constants import (
-    CALLBACK_REDIRECT_URL,
     OAUTH_AUTHORIZE_URL,
     OAUTH_SCOPE,
     OAUTH_TOKEN_URL,
@@ -41,10 +32,10 @@ if TYPE_CHECKING:
 
 
 def manual_authorize_url(client_id: str) -> str:
-    """Build the authorize URL for the manual (verification-code) flow.
+    """Build the authorize URL the user opens to obtain a confirmation code.
 
     :param client_id: The user's Yandex OAuth client id.
-    :returns: The URL the user opens to obtain a confirmation code.
+    :returns: The URL that shows a confirmation code on Yandex's page.
     """
     params = {
         "response_type": "code",
@@ -55,44 +46,10 @@ def manual_authorize_url(client_id: str) -> str:
     return f"{OAUTH_AUTHORIZE_URL}?{urlencode(params)}"
 
 
-async def authorize(
-    mass: MusicAssistant, session_id: str, client_id: str, client_secret: str
-) -> str:
-    """Run the browser OAuth flow (variant A) and return a refresh token.
-
-    :param mass: The MusicAssistant instance.
-    :param session_id: Auth-session id supplied by the frontend.
-    :param client_id: The user's Yandex OAuth client id.
-    :param client_secret: The user's Yandex OAuth client secret.
-    :returns: The refresh token.
-    :raises LoginFailed: Authorization was denied or the exchange failed.
-    """
-    async with AuthenticationHelper(mass, session_id) as auth_helper:
-        params = {
-            "response_type": "code",
-            "client_id": client_id,
-            "scope": OAUTH_SCOPE,
-            # fixed relay registered in the user's app; forwards the code to the
-            # local callback smuggled in `state`
-            "redirect_uri": CALLBACK_REDIRECT_URL,
-            "state": auth_helper.callback_url,
-            "force_confirm": "yes",
-        }
-        auth_url = f"{OAUTH_AUTHORIZE_URL}?{urlencode(params)}"
-        result = await auth_helper.authenticate(auth_url, timeout=120)
-    # the relay forwards a literal "null" code when the user denied consent
-    if not result.get("code") or result["code"] == "null":
-        err = result.get("error", "no authorization code returned")
-        raise LoginFailed(f"Yandex authorization failed: {err}")
-    return await _exchange_code(
-        mass, str(result["code"]), client_id, client_secret, CALLBACK_REDIRECT_URL
-    )
-
-
 async def exchange_manual_code(
     mass: MusicAssistant, code: str, client_id: str, client_secret: str
 ) -> str:
-    """Exchange a manually pasted confirmation code (variant B) for a refresh token.
+    """Exchange a pasted confirmation code for a refresh token.
 
     :param mass: The MusicAssistant instance.
     :param code: The confirmation code copied from Yandex's verification page.
@@ -103,23 +60,12 @@ async def exchange_manual_code(
     """
     if not code:
         raise LoginFailed("Enter the confirmation code from the Yandex page first")
-    return await _exchange_code(mass, code, client_id, client_secret, VERIFICATION_CODE_REDIRECT)
-
-
-async def _exchange_code(
-    mass: MusicAssistant,
-    code: str,
-    client_id: str,
-    client_secret: str,
-    redirect_uri: str,
-) -> str:
-    """Exchange an authorization code for tokens; return the refresh token."""
     data = {
         "grant_type": "authorization_code",
         "code": code,
         "client_id": client_id,
         "client_secret": client_secret,
-        "redirect_uri": redirect_uri,
+        "redirect_uri": VERIFICATION_CODE_REDIRECT,
     }
     try:
         async with mass.http_session.post(OAUTH_TOKEN_URL, data=data) as resp:

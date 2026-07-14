@@ -15,25 +15,27 @@ cloud storage, but none for **Yandex Disk** — a popular storage service in the
 provider fleet's primary (Russian-speaking) audience. Users who keep their
 personal music on Yandex Disk cannot browse, sync or stream it in MA. This
 provider closes that gap by subclassing the shared `CloudFileSystemProvider`
-(the same base Google Drive uses) and authenticating exactly like the Google
-Drive provider: the user registers their own Yandex OAuth application
-(`cloud_api:disk.read`) and authorizes via the authorization-code flow, which
-yields a refresh token; `MAYandexDiskAuth` keeps the access token fresh.
+(the same base Google Drive uses) and authenticating like the Google Drive
+provider's token model: the user registers their own Yandex OAuth application
+(`cloud_api:disk.read`) and authorizes via Yandex's confirmation-code flow
+(paste the code Yandex shows — no redirect URI to register), which yields a
+refresh token; `MAYandexDiskAuth` keeps the access token fresh.
 
 Auth alternatives were evaluated and rejected: the `x_token` exchange via
 `ya-passport-auth` has no verified first-party Disk client; WebDAV
 (login + app-password) requires a paid Yandex 360 subscription; Yandex has no
 API to auto-create an OAuth app; a single shared app was rejected in favour of
-the Google-Drive-style per-user app (no shared secret to ship/rotate). The REST
-API with an OAuth token works on free accounts.
+the Google-Drive-style per-user app (no shared secret to ship/rotate); the
+browser/relay flow was dropped in favour of the confirmation-code flow so no
+redirect URI needs registering. The REST API with an OAuth token works on free
+accounts.
 
 ## Acceptance Criteria
 
 1. A `filesystem_yandex_disk` instance can be added by entering the user's own
-   Yandex OAuth `client_id` + `client_secret` and pressing **Authorize** (browser
-   flow, variant A) or pasting a confirmation code (advanced, variant B); a
-   refresh token is stored and the access token auto-refreshes. Root path is
-   configurable (default `disk:/`).
+   Yandex OAuth `client_id` + `client_secret`, pasting the confirmation code from
+   Yandex's page and pressing **Authorize**; a refresh token is stored and the
+   access token auto-refreshes. Root path is configurable (default `disk:/`).
 2. Library sync populates tracks, albums, artists and playlists from audio files
    under the configured root; a re-sync with no disk changes reports no changes
    (checksum = resource `md5`).
@@ -64,14 +66,13 @@ API with an OAuth token works on free accounts.
 ## Sequence Diagram
 
 ```
-Setup (variant A, default):
-User enters client_id + client_secret → clicks Authorize
-MA → AuthenticationHelper opens oauth.yandex.ru/authorize (response_type=code,
-     redirect_uri=music-assistant.io/callback, state=local_cb, scope=disk.read)
-Yandex → relay → local /callback/{session_id}?code=...
-MA → POST oauth.yandex.ru/token (grant_type=authorization_code, secret)
-     → access_token + refresh_token → stores refresh_token (hidden)
-(variant B: user pastes the verification_code shown by Yandex → same token POST)
+Setup:
+User enters client_id + client_secret → opens authorize URL (help link)
+Yandex → shows a confirmation code on its verification_code page
+User pastes the code → clicks Authorize
+MA → POST oauth.yandex.ru/token (grant_type=authorization_code, secret,
+     redirect_uri=verification_code) → access_token + refresh_token
+     → stores refresh_token (hidden); the one-time code is not persisted
 
 Runtime token:
 MAYandexDiskAuth.async_get_access_token → cached, else POST token
@@ -110,11 +111,14 @@ For Yandex Disk the path-addressed API means **id = the resource path**
 
 ## Notes / Follow-ups
 
-- **Per-user app, no shared credentials:** each user registers their own Yandex
-  OAuth app (free) with `cloud_api:disk.read`. Variant A additionally needs
-  `https://music-assistant.io/callback` registered as a redirect URI; variant B
-  (advanced) uses Yandex's `verification_code` page and needs no redirect URI.
-  This is the Google-Drive-style model — nothing is shipped in the provider.
+- **Per-user app, no shared credentials, no redirect URI:** each user registers
+  their own Yandex OAuth app (free) with `cloud_api:disk.read` and authorizes via
+  the confirmation-code flow (Yandex's `verification_code` page). Nothing is
+  shipped in the provider and no redirect URI needs registering.
+- **Optional UX improvement:** a one-click browser flow (`AuthenticationHelper` +
+  the `music-assistant.io/callback` relay, Google-Drive-style) could be added
+  later for users who register that redirect URI; it was intentionally left out
+  to keep setup to a single flow.
 - **Rejected alternatives:** `x_token` exchange via `ya-passport-auth` (no verified
   first-party Disk client accepting `grant_type=x-token`); WebDAV + app-password
   (requires a paid Yandex 360 subscription); programmatic OAuth-app creation
