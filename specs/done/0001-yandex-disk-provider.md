@@ -93,11 +93,16 @@ For Yandex Disk the path-addressed API means **id = the resource path**
 
 - The disk-scoped token exchange (`x_token → cloud_api:disk.*`) currently lives
   in `provider/auth.py` as a self-contained fallback and prefers
-  `ya_passport_auth.ma.refresh_disk_token` when a release provides it. Its
-  permanent home is `ya-passport-auth` (add `DISK_CLIENT_ID`/`DISK_CLIENT_SECRET`
-  + `exchange_x_token_for_disk_token`), then bump the manifest/registry pin.
-- `DISK_CLIENT_ID`/`DISK_CLIENT_SECRET` in `provider/constants.py` are
-  placeholders and MUST be filled with the real public first-party Yandex Disk
-  client credentials before the exchange can succeed.
+  `ya_passport_auth.ma.refresh_disk_token`. That library function now exists on
+  the `feat/disk-token-exchange` branch of `ya-passport-auth`
+  (`exchange_x_token_for_disk_token` + `PassportClient.refresh_disk_token` +
+  `ma.refresh_disk_token` + `DISK_CLIENT_ID`/`DISK_CLIENT_SECRET`/`DISK_TOKEN_URL`
+  constants, full tests). Once released to PyPI, bump the manifest/registry pin
+  from `1.7.0` to that version; the provider shim then prefers it automatically.
+- `DISK_CLIENT_ID`/`DISK_CLIENT_SECRET` are placeholders in **both** the library
+  (`ya_passport_auth.constants`) and `provider/constants.py`, and MUST be filled
+  with the real public first-party Yandex Disk client credentials before the
+  exchange can succeed. Until then it raises a clear error (library:
+  `InvalidCredentialsError`; provider fallback: `SetupFailedError`).
 - Borrow-from-`yandex_music` (reuse a linked instance's x_token) is a planned
   refinement via `ya_passport_auth.ma.borrow`.
