@@ -1,35 +1,8 @@
 {
   "config_entries": {
-    "label_text": {
-      "label": "Authentication status"
-    },
-    "auth_device": {
-      "label": "[%key:common::config_entries::auth_device::label%]",
-      "description": "[%key:common::config_entries::auth_device::description%]",
-      "action_label": "[%key:common::config_entries::auth_device::action_label%]"
-    },
-    "auth_qr": {
-      "label": "[%key:common::config_entries::auth_qr::label%]",
-      "description": "[%key:common::config_entries::auth_qr::description%]",
-      "action_label": "[%key:common::config_entries::auth_qr::action_label%]"
-    },
-    "remember_session": {
-      "label": "[%key:common::config_entries::remember_session::label%]",
-      "description": "[%key:common::config_entries::remember_session::description%]"
-    },
-    "clear_auth": {
-      "label": "[%key:common::config_entries::clear_auth::label%]",
-      "description": "[%key:common::config_entries::clear_auth::description%]",
-      "action_label": "[%key:common::config_entries::clear_auth::action_label%]"
-    },
-    "x_token": {
-      "label": "Session token"
-    },
     "disk_token": {
-      "label": "Disk access token"
-    },
-    "refresh_token": {
-      "label": "Refresh token"
+      "label": "Yandex Disk OAuth token",
+      "description": "Open the link, allow access, then paste the token from the page here. The token is scoped to read-only Yandex Disk access."
     },
     "root_path": {
       "label": "Root folder to scan",
@@ -43,27 +16,6 @@
         "audiobooks": "[%key:common::config_entries::content_type::options::audiobooks%]",
         "podcasts": "[%key:common::config_entries::content_type::options::podcasts%]"
       }
-    }
-  },
-  "page": {
-    "device_code": {
-      "title": "Login to Yandex Disk",
-      "step_copy": "[%key:common::page::device_code::step_copy%]",
-      "hint_copy": "[%key:common::page::device_code::hint_copy%]",
-      "copied": "[%key:common::page::device_code::copied%]",
-      "copy_manual": "[%key:common::page::device_code::copy_manual%]",
-      "step_open": "[%key:common::page::device_code::step_open%]",
-      "open_button": "[%key:common::page::device_code::open_button%]",
-      "expires_label": "[%key:common::page::device_code::expires_label%]",
-      "expired_title": "[%key:common::page::device_code::expired_title%]",
-      "expired_text": "[%key:common::page::device_code::expired_text%]",
-      "success_title": "[%key:common::page::device_code::success_title%]",
-      "success_text": "[%key:common::page::device_code::success_text%]",
-      "failed_title": "[%key:common::page::device_code::failed_title%]",
-      "failed_text": "[%key:common::page::device_code::failed_text%]",
-      "denied_text": "[%key:common::page::device_code::denied_text%]",
-      "ended_title": "[%key:common::page::device_code::ended_title%]",
-      "ended_text": "[%key:common::page::device_code::ended_text%]"
     }
   },
   "manifest": {

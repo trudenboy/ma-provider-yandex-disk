@@ -8,7 +8,7 @@ Provider that streams and syncs your personal music files stored on **Yandex Dis
 
 - Просмотр каталога (Browse) и синхронизация библиотеки: треки, альбомы, исполнители, плейлисты.
 - Стриминг с перемоткой (HTTP Range / seek).
-- Единый вход Яндекс: device-code / QR, а также режим заимствования учётных данных из настроенного провайдера Yandex Music (borrow).
+- Авторизация по OAuth-токену Яндекс Диска (implicit flow, `cloud_api:disk.read`) — работает на бесплатных аккаунтах.
 - Настраиваемая корневая папка (например, `disk:/Music`).
 
 ## Установка / Installation

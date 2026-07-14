@@ -15,14 +15,20 @@ cloud storage, but none for **Yandex Disk** — a popular storage service in the
 provider fleet's primary (Russian-speaking) audience. Users who keep their
 personal music on Yandex Disk cannot browse, sync or stream it in MA. This
 provider closes that gap by subclassing the shared `CloudFileSystemProvider`
-(the same base Google Drive uses) and reusing the fleet's shared Yandex login
-library so the auth experience matches the other Yandex providers.
+(the same base Google Drive uses) and authenticating with a read-only Yandex
+Disk OAuth token obtained via the implicit flow (`response_type=token`), the
+same pattern the yandex_smarthome provider uses for its skill token.
+
+Auth alternatives were evaluated and rejected: the `x_token` exchange via
+`ya-passport-auth` has no verified first-party Disk client; WebDAV
+(login + app-password) requires a paid Yandex 360 subscription. The REST API
+with an OAuth token works on free accounts and is the default.
 
 ## Acceptance Criteria
 
-1. A `filesystem_yandex_disk` provider instance can be added in MA, authenticated
-   via the shared device-code or QR flow, with a configurable root path
-   (default `disk:/`).
+1. A `filesystem_yandex_disk` provider instance can be added in MA by pasting a
+   `cloud_api:disk.read` OAuth token (obtained via the linked implicit-flow
+   authorize URL), with a configurable root path (default `disk:/`).
 2. Library sync populates tracks, albums, artists and playlists from audio files
    under the configured root; a re-sync with no disk changes reports no changes
    (checksum = resource `md5`).
@@ -45,19 +51,17 @@ library so the auth experience matches the other Yandex providers.
 - Integration (`@pytest.mark.integration`): the real
   `CloudFileSystemProvider._scandir` maps a fixture listing into `FileSystemItem`s
   with MA proxy stream URLs.
-- End-to-end (manual, requires real Yandex account + Disk OAuth client): add an
-  instance via `./scripts/dev-server.sh`, log in, sync `disk:/Music`, verify
-  browse/playback/seek/delete-resync.
+- End-to-end (manual, requires a real Yandex account + a registered Disk OAuth
+  app): add an instance via `./scripts/dev-server.sh`, paste a token, sync
+  `disk:/Music`, verify browse/playback/seek/delete-resync.
 
 ## Sequence Diagram
 
 ```
-User → MA config: click "Login (device code)"
-MA → ya_passport_auth: run_device_flow → x_token (+refresh_token)
-MA → provider.auth.mint_disk_token(x_token)
-provider.auth → (ya_passport_auth.ma.refresh_disk_token | local x-token exchange)
-            → cloud_api:disk.* access token
-MA stores x_token + disk_token (hidden, secure)
+Setup:
+User → opens YANDEX_OAUTH_URL (response_type=token, client_id=<MA disk app>)
+Yandex → shows cloud_api:disk.read token → user pastes it into disk_token field
+MA stores disk_token (hidden, secure)
 
 Sync/Browse:
 CloudFileSystemProvider._scandir → _api_list_children(path)
@@ -91,18 +95,18 @@ For Yandex Disk the path-addressed API means **id = the resource path**
 
 ## Notes / Follow-ups
 
-- The disk-scoped token exchange (`x_token → cloud_api:disk.*`) currently lives
-  in `provider/auth.py` as a self-contained fallback and prefers
-  `ya_passport_auth.ma.refresh_disk_token`. That library function now exists on
-  the `feat/disk-token-exchange` branch of `ya-passport-auth`
-  (`exchange_x_token_for_disk_token` + `PassportClient.refresh_disk_token` +
-  `ma.refresh_disk_token` + `DISK_CLIENT_ID`/`DISK_CLIENT_SECRET`/`DISK_TOKEN_URL`
-  constants, full tests). Once released to PyPI, bump the manifest/registry pin
-  from `1.7.0` to that version; the provider shim then prefers it automatically.
-- `DISK_CLIENT_ID`/`DISK_CLIENT_SECRET` are placeholders in **both** the library
-  (`ya_passport_auth.constants`) and `provider/constants.py`, and MUST be filled
-  with the real public first-party Yandex Disk client credentials before the
-  exchange can succeed. Until then it raises a clear error (library:
-  `InvalidCredentialsError`; provider fallback: `SetupFailedError`).
-- Borrow-from-`yandex_music` (reuse a linked instance's x_token) is a planned
-  refinement via `ya_passport_auth.ma.borrow`.
+- **Required before use:** register one Music Assistant Yandex OAuth application at
+  <https://oauth.yandex.ru/> with the `cloud_api:disk.read` permission and set its
+  id in `DISK_OAUTH_CLIENT_ID` (`provider/constants.py`). Until it is set, the
+  config flow links to the app-registration page instead of a working authorize
+  URL. This is the rclone-style "one shared app" model — end users register
+  nothing.
+- **Auto-capture (optional UX improvement):** replace the manual token paste with
+  an `AuthenticationHelper` + a small JS relay route that reads the implicit-flow
+  token from the URL fragment and stores it automatically. Manual paste then
+  becomes the advanced fallback.
+- **Rejected alternatives:** `x_token` exchange via `ya-passport-auth` (no verified
+  first-party Disk client that accepts `grant_type=x-token`); WebDAV +
+  app-password (requires a paid Yandex 360 subscription). A standalone
+  `ya-passport-auth` disk-token-exchange branch (`feat/disk-token-exchange`)
+  exists but is unused by this provider.

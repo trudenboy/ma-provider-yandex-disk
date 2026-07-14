@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
+from music_assistant_models.errors import LoginFailed
 
-import provider.api_client as api_client_mod
 from provider.api_client import YandexDiskApi, _to_raw_item
 
 
@@ -37,25 +37,24 @@ def test_to_raw_item_file_without_md5_falls_back() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_token_mints_once(monkeypatch: pytest.MonkeyPatch) -> None:
-    """get_token mints via mint_disk_token and caches the result."""
-    calls: list[str] = []
-
-    async def fake_mint(x_token: str) -> str:
-        calls.append(x_token)
-        return "disk-tok"
-
-    monkeypatch.setattr(api_client_mod, "mint_disk_token", fake_mint)
+async def test_validate_empty_token_raises() -> None:
+    """Validation of a missing token is a terminal auth failure."""
     api = YandexDiskApi.__new__(YandexDiskApi)
-    api._x_token = "xt"
-    api._disk_token = None
+    api._token = ""
+    with pytest.raises(LoginFailed):
+        await api.validate()
+
+
+@pytest.mark.asyncio
+async def test_validate_rejected_token_raises() -> None:
+    """A token the API rejects surfaces as LoginFailed."""
+    api = YandexDiskApi.__new__(YandexDiskApi)
+    api._token = "bad-token"
 
     class _Client:
-        token = ""
+        async def check_token(self) -> bool:
+            return False
 
     api._client = _Client()  # type: ignore[assignment]
-
-    assert await api.get_token() == "disk-tok"
-    assert await api.get_token() == "disk-tok"  # cached
-    assert calls == ["xt"]
-    assert api._client.token == "disk-tok"
+    with pytest.raises(LoginFailed):
+        await api.validate()

@@ -15,7 +15,7 @@ from music_assistant_models.errors import SetupFailedError
 from music_assistant.providers.filesystem_cloud.base import CloudFileSystemProvider
 
 from .api_client import YandexDiskApi
-from .constants import CONF_ROOT_PATH, CONF_X_TOKEN, DISK_ROOT
+from .constants import CONF_DISK_TOKEN, CONF_ROOT_PATH, DISK_ROOT
 
 if TYPE_CHECKING:
     import aiohttp
@@ -43,12 +43,12 @@ class YandexDiskFileSystemProvider(CloudFileSystemProvider):
         """
         root_path = cast("str", config.get_value(CONF_ROOT_PATH) or DISK_ROOT)
         super().__init__(mass, manifest, config, root_path)
-        self.api = YandexDiskApi(mass, cast("str", config.get_value(CONF_X_TOKEN) or ""))
+        self.api = YandexDiskApi(mass, cast("str", config.get_value(CONF_DISK_TOKEN) or ""))
 
     async def handle_async_init(self) -> None:
         """Validate credentials and the configured root, then register routes."""
-        # verify auth works early so setup fails clearly if the token is bad
-        await self.api.get_token()
+        # verify the token works early so setup fails clearly if it is bad
+        await self.api.validate()
         # validate the configured root exists (skip for the whole-disk default)
         if self.root_folder_id not in ("", DISK_ROOT) and not await self.api.exists_dir(
             self.root_folder_id

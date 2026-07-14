@@ -1,12 +1,15 @@
 """Async Yandex Disk API wrapper built on the yadisk library.
 
 Owns a yadisk ``AsyncClient`` bound to Music Assistant's shared aiohttp session
-(never closing it), mints/caches the disk-scoped token, and exposes the small
-surface the ``CloudFileSystemProvider`` hooks need: folder listing, small-file
-download, and a streaming download response that honours HTTP Range.
+(never closing it) and exposes the small surface the ``CloudFileSystemProvider``
+hooks need: folder listing, small-file download, and a streaming download
+response that honours HTTP Range.
 
-The Yandex Disk REST API is path-addressed, so resource paths (``disk:/...``)
-double as the opaque "file id" the base class passes around.
+The disk-scoped OAuth token is supplied directly (obtained by the user via the
+implicit flow); it is long-lived and non-refreshable, so a 401 surfaces as
+``LoginFailed`` — the user must re-authorize. The Yandex Disk REST API is
+path-addressed, so resource paths (``disk:/...``) double as the opaque "file id"
+the base class passes around.
 """
 
 from __future__ import annotations
@@ -27,8 +30,6 @@ from yadisk.exceptions import (
     YaDiskError,
 )
 from yadisk.sessions.aiohttp_session import AIOHTTPSession
-
-from .auth import mint_disk_token
 
 if TYPE_CHECKING:
     from music_assistant import MusicAssistant
@@ -74,29 +75,34 @@ def _to_raw_item(resource: object) -> RawItem:
 class YandexDiskApi:
     """Thin async facade over yadisk for the filesystem provider."""
 
-    def __init__(self, mass: MusicAssistant, x_token: str) -> None:
+    def __init__(self, mass: MusicAssistant, token: str) -> None:
         """Initialise the API wrapper.
 
         :param mass: The MusicAssistant instance (for its shared http session).
-        :param x_token: The stored Passport x_token used to mint disk tokens.
+        :param token: The disk-scoped OAuth token (from the implicit flow).
         """
         self.mass = mass
-        self._x_token = x_token
-        self._disk_token: str | None = None
+        self._token = token
         self._client = yadisk.AsyncClient(
-            token="",
+            token=token,
             session=_SharedAIOHTTPSession(mass.http_session),
         )
 
-    async def get_token(self) -> str:
-        """Return a valid disk-scoped token, minting one if needed.
+    async def validate(self) -> None:
+        """Verify the stored token is accepted by Yandex Disk.
 
-        :returns: The disk-scoped OAuth token.
+        :raises LoginFailed: The token is missing or rejected.
+        :raises ProviderUnavailableError: A transient failure reaching Yandex.
         """
-        if self._disk_token is None:
-            self._disk_token = await mint_disk_token(self._x_token)
-            self._client.token = self._disk_token
-        return self._disk_token
+        if not self._token:
+            raise LoginFailed("No Yandex Disk token configured; authorize first")
+        try:
+            if not await self._client.check_token():
+                raise LoginFailed("Yandex Disk token was rejected; re-authorize")
+        except UnauthorizedError as err:
+            raise LoginFailed(f"Yandex Disk token was rejected: {err}") from err
+        except YaDiskError as err:
+            raise ProviderUnavailableError(f"Yandex Disk API error: {err}") from err
 
     async def list_children(self, folder_path: str) -> list[RawItem]:
         """List a folder's children (yadisk auto-paginates).
@@ -104,12 +110,13 @@ class YandexDiskApi:
         :param folder_path: Disk path of the folder (``disk:/...``).
         :returns: One ``RawItem`` per child.
         """
-        await self.get_token()
         try:
-            return await self._collect_children(folder_path)
-        except UnauthorizedError:
-            await self._reauth()
-            return await self._collect_children(folder_path)
+            items: list[RawItem] = []
+            async for entry in self._client.listdir(folder_path, fields=list(_FIELDS)):
+                items.append(_to_raw_item(entry))
+            return items
+        except UnauthorizedError as err:
+            raise LoginFailed(f"Yandex Disk token was rejected: {err}") from err
         except PathNotFoundError as err:
             raise MediaNotFoundError(f"Yandex Disk folder not found: {folder_path}") from err
         except TooManyRequestsError as err:
@@ -153,11 +160,10 @@ class YandexDiskApi:
         :param path: Disk path to check.
         :returns: Whether the path is an existing directory.
         """
-        await self.get_token()
         try:
             return await self._client.is_dir(path)
         except UnauthorizedError as err:
-            raise LoginFailed(f"Yandex Disk authentication failed: {err}") from err
+            raise LoginFailed(f"Yandex Disk token was rejected: {err}") from err
         except YaDiskError as err:
             raise ProviderUnavailableError(f"Yandex Disk API error: {err}") from err
 
@@ -165,26 +171,12 @@ class YandexDiskApi:
         """Release the yadisk client (does not close MA's shared session)."""
         await self._client.close()
 
-    async def _collect_children(self, folder_path: str) -> list[RawItem]:
-        """Iterate a folder's children into ``RawItem`` tuples."""
-        items: list[RawItem] = []
-        async for entry in self._client.listdir(folder_path, fields=list(_FIELDS)):
-            items.append(_to_raw_item(entry))
-        return items
-
-    async def _reauth(self) -> None:
-        """Force a fresh disk token (called after a 401)."""
-        self._disk_token = None
-        await self.get_token()
-
     async def _download_link(self, file_path: str) -> str:
         """Fetch a fresh, short-lived pre-signed download href for *file_path*."""
-        await self.get_token()
         try:
             return await self._client.get_download_link(file_path)
-        except UnauthorizedError:
-            await self._reauth()
-            return await self._client.get_download_link(file_path)
+        except UnauthorizedError as err:
+            raise LoginFailed(f"Yandex Disk token was rejected: {err}") from err
         except PathNotFoundError as err:
             raise MediaNotFoundError(f"Yandex Disk file not found: {file_path}") from err
         except TooManyRequestsError as err:

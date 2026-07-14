@@ -2,33 +2,33 @@
 
 from typing import Final
 
-# Config keys for the shared ya-passport-auth credential block.
-CONF_X_TOKEN: Final[str] = "x_token"
+# Config keys.
+# The disk-scoped OAuth token, obtained by the user via the implicit flow
+# (``response_type=token``) and pasted into a SECURE_STRING field — the same
+# approach as the yandex_smarthome provider.
 CONF_DISK_TOKEN: Final[str] = "disk_token"
-CONF_REFRESH_TOKEN: Final[str] = "refresh_token"
-CONF_REMEMBER_SESSION: Final[str] = "remember_session"
-
-# Provider-specific config.
 CONF_ROOT_PATH: Final[str] = "root_path"
 
 # Yandex Disk API root and default scan root (the REST API is path-addressed).
 DISK_ROOT: Final[str] = "disk:/"
 
 # ---------------------------------------------------------------------------
-# Disk-scoped OAuth token exchange (x_token -> cloud_api:disk.* token).
+# Implicit OAuth flow (response_type=token).
 #
-# The shared login (ya-passport-auth) yields a Passport ``x_token``; the Yandex
-# Disk REST API needs a disk-scoped OAuth token minted from it via the mobile
-# OAuth endpoint with ``grant_type=x-token`` and a first-party Disk client.
+# The user opens YANDEX_OAUTH_URL, Yandex returns a ``cloud_api:disk.read``
+# scoped token directly in the browser, and the user pastes it into the token
+# field. No client_secret is involved.
 #
-# These are public first-party client credentials (compiled into the Yandex
-# Disk Android app), NOT secrets — analogous to the music/passport clients in
-# ``ya_passport_auth.constants``. They MUST be filled with the real published
-# values before the exchange can succeed; until then ``mint_disk_token`` raises
-# a clear error. The permanent home for these is ``ya-passport-auth`` itself
-# (see the provider spec); the provider prefers the library's
-# ``refresh_disk_token`` when a release ships it.
+# DISK_OAUTH_CLIENT_ID must be the id of a Yandex OAuth application registered
+# with the "cloud_api:disk.read" permission (register once at
+# https://oauth.yandex.ru/ — the same one-app pattern yandex_smarthome uses).
+# Until it is filled, the config flow links to the app-registration page instead
+# of a broken authorize URL.
 # ---------------------------------------------------------------------------
-DISK_CLIENT_ID: Final[str] = ""  # TODO: public Yandex Disk Android client_id
-DISK_CLIENT_SECRET: Final[str] = ""  # TODO: public Yandex Disk Android client_secret
-DISK_TOKEN_URL: Final[str] = "https://oauth.mobile.yandex.net/1/token"
+DISK_OAUTH_CLIENT_ID: Final[str] = ""  # TODO: id of the MA Yandex Disk OAuth app
+OAUTH_APP_REGISTER_URL: Final[str] = "https://oauth.yandex.ru/"
+YANDEX_OAUTH_URL: Final[str] = (
+    f"https://oauth.yandex.ru/authorize?response_type=token&client_id={DISK_OAUTH_CLIENT_ID}"
+    if DISK_OAUTH_CLIENT_ID
+    else OAUTH_APP_REGISTER_URL
+)
