@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -43,13 +44,13 @@ class _FakeApi:
 def _make_provider() -> tuple[YandexDiskFileSystemProvider, _FakeApi]:
     prov = YandexDiskFileSystemProvider.__new__(YandexDiskFileSystemProvider)
     fake = _FakeApi(json.loads(_FIXTURE.read_text()))
-    prov.mass = _MassStub()  # type: ignore[assignment]
-    prov.config = _ConfigStub()  # type: ignore[assignment]
+    prov.mass = cast("Any", _MassStub())
+    prov.config = cast("Any", _ConfigStub())
     prov.logger = logging.getLogger("yandex_disk_test")
     prov.root_folder_id = "disk:/Music"
     prov._dir_cache = {}
     prov._dir_cache_expiry = {}
-    prov.api = fake  # type: ignore[assignment]
+    prov.api = cast("Any", fake)
     return prov, fake
 
 

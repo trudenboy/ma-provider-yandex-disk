@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 from provider.provider import YandexDiskFileSystemProvider
@@ -29,7 +31,7 @@ class _FakeApi:
 def _provider_with_fake_api() -> tuple[YandexDiskFileSystemProvider, _FakeApi]:
     prov = YandexDiskFileSystemProvider.__new__(YandexDiskFileSystemProvider)
     fake = _FakeApi()
-    prov.api = fake  # type: ignore[assignment]
+    prov.api = cast("Any", fake)
     return prov, fake
 
 
