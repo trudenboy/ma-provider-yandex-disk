@@ -15,20 +15,25 @@ cloud storage, but none for **Yandex Disk** — a popular storage service in the
 provider fleet's primary (Russian-speaking) audience. Users who keep their
 personal music on Yandex Disk cannot browse, sync or stream it in MA. This
 provider closes that gap by subclassing the shared `CloudFileSystemProvider`
-(the same base Google Drive uses) and authenticating with a read-only Yandex
-Disk OAuth token obtained via the implicit flow (`response_type=token`), the
-same pattern the yandex_smarthome provider uses for its skill token.
+(the same base Google Drive uses) and authenticating exactly like the Google
+Drive provider: the user registers their own Yandex OAuth application
+(`cloud_api:disk.read`) and authorizes via the authorization-code flow, which
+yields a refresh token; `MAYandexDiskAuth` keeps the access token fresh.
 
 Auth alternatives were evaluated and rejected: the `x_token` exchange via
 `ya-passport-auth` has no verified first-party Disk client; WebDAV
-(login + app-password) requires a paid Yandex 360 subscription. The REST API
-with an OAuth token works on free accounts and is the default.
+(login + app-password) requires a paid Yandex 360 subscription; Yandex has no
+API to auto-create an OAuth app; a single shared app was rejected in favour of
+the Google-Drive-style per-user app (no shared secret to ship/rotate). The REST
+API with an OAuth token works on free accounts.
 
 ## Acceptance Criteria
 
-1. A `filesystem_yandex_disk` provider instance can be added in MA by pasting a
-   `cloud_api:disk.read` OAuth token (obtained via the linked implicit-flow
-   authorize URL), with a configurable root path (default `disk:/`).
+1. A `filesystem_yandex_disk` instance can be added by entering the user's own
+   Yandex OAuth `client_id` + `client_secret` and pressing **Authorize** (browser
+   flow, variant A) or pasting a confirmation code (advanced, variant B); a
+   refresh token is stored and the access token auto-refreshes. Root path is
+   configurable (default `disk:/`).
 2. Library sync populates tracks, albums, artists and playlists from audio files
    under the configured root; a re-sync with no disk changes reports no changes
    (checksum = resource `md5`).
@@ -44,10 +49,11 @@ with an OAuth token works on free accounts and is the default.
 
 ## Test Plan
 
-- Unit: `_to_raw_item` mapping (file/dir/missing-md5); `mint_disk_token`
-  delegation + failure modes; provider hook delegation incl. Range passthrough
-  and empty-folder → disk-root; config flow entries (first-setup vs reconfigure,
-  auth actions present).
+- Unit: `_to_raw_item` mapping (file/dir/missing-md5); code exchange +
+  `MAYandexDiskAuth` refresh (success/cache, rejected→LoginFailed,
+  5xx→ProviderUnavailableError); provider hook delegation incl. Range passthrough
+  and empty-folder → disk-root; config flow entries (OAuth fields, hidden refresh
+  token, manual-code help link, first-setup vs reconfigure).
 - Integration (`@pytest.mark.integration`): the real
   `CloudFileSystemProvider._scandir` maps a fixture listing into `FileSystemItem`s
   with MA proxy stream URLs.
@@ -58,14 +64,23 @@ with an OAuth token works on free accounts and is the default.
 ## Sequence Diagram
 
 ```
-Setup:
-User → opens YANDEX_OAUTH_URL (response_type=token, client_id=<MA disk app>)
-Yandex → shows cloud_api:disk.read token → user pastes it into disk_token field
-MA stores disk_token (hidden, secure)
+Setup (variant A, default):
+User enters client_id + client_secret → clicks Authorize
+MA → AuthenticationHelper opens oauth.yandex.ru/authorize (response_type=code,
+     redirect_uri=music-assistant.io/callback, state=local_cb, scope=disk.read)
+Yandex → relay → local /callback/{session_id}?code=...
+MA → POST oauth.yandex.ru/token (grant_type=authorization_code, secret)
+     → access_token + refresh_token → stores refresh_token (hidden)
+(variant B: user pastes the verification_code shown by Yandex → same token POST)
+
+Runtime token:
+MAYandexDiskAuth.async_get_access_token → cached, else POST token
+     (grant_type=refresh_token) 60s before expiry; 400/401→LoginFailed, 5xx→transient
 
 Sync/Browse:
 CloudFileSystemProvider._scandir → _api_list_children(path)
-    → YandexDiskApi.list_children → yadisk AsyncClient.listdir (paginated)
+    → YandexDiskApi.list_children (sets fresh access token on yadisk client)
+    → yadisk AsyncClient.listdir (paginated)
     → RawItem[] → FileSystemItem[] (absolute_path = MA proxy URL)
 
 Playback:
@@ -95,18 +110,15 @@ For Yandex Disk the path-addressed API means **id = the resource path**
 
 ## Notes / Follow-ups
 
-- **Required before use:** register one Music Assistant Yandex OAuth application at
-  <https://oauth.yandex.ru/> with the `cloud_api:disk.read` permission and set its
-  id in `DISK_OAUTH_CLIENT_ID` (`provider/constants.py`). Until it is set, the
-  config flow links to the app-registration page instead of a working authorize
-  URL. This is the rclone-style "one shared app" model — end users register
-  nothing.
-- **Auto-capture (optional UX improvement):** replace the manual token paste with
-  an `AuthenticationHelper` + a small JS relay route that reads the implicit-flow
-  token from the URL fragment and stores it automatically. Manual paste then
-  becomes the advanced fallback.
+- **Per-user app, no shared credentials:** each user registers their own Yandex
+  OAuth app (free) with `cloud_api:disk.read`. Variant A additionally needs
+  `https://music-assistant.io/callback` registered as a redirect URI; variant B
+  (advanced) uses Yandex's `verification_code` page and needs no redirect URI.
+  This is the Google-Drive-style model — nothing is shipped in the provider.
 - **Rejected alternatives:** `x_token` exchange via `ya-passport-auth` (no verified
-  first-party Disk client that accepts `grant_type=x-token`); WebDAV +
-  app-password (requires a paid Yandex 360 subscription). A standalone
+  first-party Disk client accepting `grant_type=x-token`); WebDAV + app-password
+  (requires a paid Yandex 360 subscription); programmatic OAuth-app creation
+  (Yandex exposes no such API for consumer accounts); a single shared MA app
+  (would ship a client secret and centralise quota/rotation). A standalone
   `ya-passport-auth` disk-token-exchange branch (`feat/disk-token-exchange`)
   exists but is unused by this provider.

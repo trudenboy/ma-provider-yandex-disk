@@ -36,22 +36,37 @@ def test_to_raw_item_file_without_md5_falls_back() -> None:
     assert size == 1
 
 
+class _AuthStub:
+    async def async_get_access_token(self) -> str:
+        return "at"
+
+
 @pytest.mark.asyncio
-async def test_validate_empty_token_raises() -> None:
-    """Validation of a missing token is a terminal auth failure."""
+async def test_validate_refreshes_and_accepts_token() -> None:
+    """validate() pulls a fresh access token and accepts a valid one."""
     api = YandexDiskApi.__new__(YandexDiskApi)
-    api._token = ""
-    with pytest.raises(LoginFailed):
-        await api.validate()
+    api._auth = _AuthStub()  # type: ignore[assignment]
+
+    class _Client:
+        token = ""
+
+        async def check_token(self) -> bool:
+            return True
+
+    api._client = _Client()  # type: ignore[assignment]
+    await api.validate()
+    assert api._client.token == "at"  # refreshed onto the yadisk client
 
 
 @pytest.mark.asyncio
 async def test_validate_rejected_token_raises() -> None:
     """A token the API rejects surfaces as LoginFailed."""
     api = YandexDiskApi.__new__(YandexDiskApi)
-    api._token = "bad-token"
+    api._auth = _AuthStub()  # type: ignore[assignment]
 
     class _Client:
+        token = ""
+
         async def check_token(self) -> bool:
             return False
 

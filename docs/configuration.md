@@ -1,41 +1,51 @@
 # Configuration
 
-## Adding the provider
+Authentication mirrors the built-in Google Drive provider: you register your own
+Yandex OAuth application and authorize Music Assistant against it. Music
+Assistant then keeps the access token fresh automatically via the refresh token.
 
-1. In Music Assistant, go to **Settings → Providers → Add Provider** and pick
-   **Yandex Disk**.
-2. Get a Yandex Disk OAuth token via the **implicit flow**:
-   - Click the link shown next to the token field. It opens Yandex's
-     authorization page (`https://oauth.yandex.ru/authorize?response_type=token&client_id=…`,
-     scope `cloud_api:disk.read`).
-   - Allow access; Yandex shows you the token. Copy it and paste it into the
-     **Yandex Disk OAuth token** field.
-3. Set **Root folder to scan** — a path on your Yandex Disk, e.g. `disk:/Music`.
-   Leave it as `disk:/` to scan the whole disk.
-4. Choose the **Content type** (music / audiobooks / podcasts). This is only
-   selectable at first setup and read-only afterwards.
+## 1. Register a Yandex OAuth application (one-time)
 
-The token is scoped to read-only Disk access and is stored encrypted in Music
-Assistant's provider config.
+1. Go to <https://oauth.yandex.ru/> and create an application.
+2. Under **Data access**, add the permission **`cloud_api:disk.read`**.
+3. Under **Platforms**, choose **Web services** and add the redirect URI
+   `https://music-assistant.io/callback` (needed for the one-click flow below).
+4. Copy the application's **ClientID** and **Client secret**.
 
-## Why a token and not a login/password?
+## 2. Add the provider
 
-Yandex Disk's WebDAV access (login + app-password) requires a paid **Yandex 360**
-subscription. The REST API used here works on **free** Yandex Disk accounts and
-only needs a read-only OAuth token, so it is the default.
+1. In Music Assistant: **Settings → Providers → Add Provider → Yandex Disk**.
+2. Paste the **Client ID** and **Client Secret**.
+3. Click **Authorize with Yandex** — a Yandex page opens; allow access. The
+   provider stores the resulting refresh token automatically.
+4. Set **Root folder to scan** (e.g. `disk:/Music`; `disk:/` scans everything).
+5. Choose the **Content type** (music / audiobooks / podcasts) — first-setup only.
+
+### Advanced: manual authorization (no redirect URI)
+
+If you don't want to register the redirect URI, use the **advanced** fields:
+open the link on the *Confirmation code* field, allow access, copy the code
+Yandex shows, paste it into that field and press **Authorize with pasted code**.
+This uses Yandex's `verification_code` page, so no redirect URI is needed.
+
+## Why your own app and not a shared one?
+
+Yandex has no API to create OAuth apps programmatically, and no verified public
+first-party client that mints Disk tokens. WebDAV (login + app-password) would
+avoid an app but requires a paid **Yandex 360** subscription. Registering a
+personal OAuth app (free) with the read-only Disk scope is the same model the
+Google Drive provider uses and works on free accounts.
 
 ## Streaming and seeking
 
-Files are streamed through Music Assistant's own proxy route, which requests a
-fresh, short-lived pre-signed download link from Yandex per playback and
-forwards HTTP `Range` requests — so seeking works even in long audiobooks.
+Files stream through Music Assistant's own proxy route, which fetches a fresh
+pre-signed download link per playback and forwards HTTP `Range` requests — so
+seeking works even in long audiobooks.
 
 ## Notes
 
-- The provider is **read-only**: it never writes to your Yandex Disk.
-- The OAuth token is long-lived (~1 year) but has no refresh; when it expires,
-  repeat the authorization step to get a new one.
-- Folder listings are cached for 5 minutes to keep browsing snappy; library
-  syncs always fetch fresh listings, so new content is never missed.
-- Change detection uses each file's `md5`, so re-syncs only reprocess files that
-  actually changed.
+- The provider is **read-only**; it never writes to your Yandex Disk.
+- The access token is refreshed automatically; you only re-authorize if you
+  revoke access or delete the app.
+- Folder listings are cached for 5 minutes; library syncs always fetch fresh
+  listings. Change detection uses each file's `md5`.

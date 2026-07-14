@@ -15,7 +15,14 @@ from music_assistant_models.errors import SetupFailedError
 from music_assistant.providers.filesystem_cloud.base import CloudFileSystemProvider
 
 from .api_client import YandexDiskApi
-from .constants import CONF_DISK_TOKEN, CONF_ROOT_PATH, DISK_ROOT
+from .auth import MAYandexDiskAuth
+from .constants import (
+    CONF_CLIENT_ID,
+    CONF_CLIENT_SECRET,
+    CONF_REFRESH_TOKEN,
+    CONF_ROOT_PATH,
+    DISK_ROOT,
+)
 
 if TYPE_CHECKING:
     import aiohttp
@@ -43,7 +50,13 @@ class YandexDiskFileSystemProvider(CloudFileSystemProvider):
         """
         root_path = cast("str", config.get_value(CONF_ROOT_PATH) or DISK_ROOT)
         super().__init__(mass, manifest, config, root_path)
-        self.api = YandexDiskApi(mass, cast("str", config.get_value(CONF_DISK_TOKEN) or ""))
+        auth = MAYandexDiskAuth(
+            mass,
+            cast("str", config.get_value(CONF_CLIENT_ID) or ""),
+            cast("str", config.get_value(CONF_CLIENT_SECRET) or ""),
+            cast("str", config.get_value(CONF_REFRESH_TOKEN) or ""),
+        )
+        self.api = YandexDiskApi(mass, auth)
 
     async def handle_async_init(self) -> None:
         """Validate credentials and the configured root, then register routes."""

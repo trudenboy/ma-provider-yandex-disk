@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from music_assistant_models.config_entries import ConfigEntry
+from music_assistant_models.constants import SECURE_STRING_SUBSTITUTE
 from music_assistant_models.enums import ConfigEntryType
+from music_assistant_models.errors import LoginFailed
 
 from music_assistant.providers.filesystem_local.constants import (
     CONF_ENTRY_CONTENT_TYPE,
@@ -20,7 +22,17 @@ from music_assistant.providers.filesystem_local.constants import (
 )
 
 from . import auth
-from .constants import CONF_DISK_TOKEN, CONF_ROOT_PATH, DISK_ROOT
+from .constants import (
+    CALLBACK_REDIRECT_URL,
+    CONF_ACTION_AUTH,
+    CONF_ACTION_AUTH_MANUAL,
+    CONF_AUTH_CODE,
+    CONF_CLIENT_ID,
+    CONF_CLIENT_SECRET,
+    CONF_REFRESH_TOKEN,
+    CONF_ROOT_PATH,
+    DISK_ROOT,
+)
 from .provider import YandexDiskFileSystemProvider
 
 if TYPE_CHECKING:
@@ -47,9 +59,9 @@ async def setup(
 
 
 async def get_config_entries(
-    mass: MusicAssistant,  # noqa: ARG001  # part of the MA plugin API signature
+    mass: MusicAssistant,
     instance_id: str | None = None,
-    action: str | None = None,  # noqa: ARG001  # part of the MA plugin API signature
+    action: str | None = None,
     values: dict[str, ConfigValueType] | None = None,
 ) -> tuple[ConfigEntry, ...]:
     """Return the config entries for this provider.
@@ -60,33 +72,81 @@ async def get_config_entries(
     :param values: Intermediate raw config values sent with the action.
     :returns: The ordered config entries.
     """
-    token_description = (
-        "Open the link, allow access, then paste the token from the page here. "
-        "The token is scoped to read-only Yandex Disk access."
-    )
-    if not auth.is_configured():
-        token_description += (
-            " NOTE: no Yandex Disk OAuth application is configured yet — register "
-            "one (with the cloud_api:disk.read permission) at the linked page and "
-            "set its client id in the provider."
-        )
+    if values is None:
+        values = {}
 
+    await _handle_auth_action(mass, instance_id, action, values)
+
+    client_id = str(values.get(CONF_CLIENT_ID) or "")
     base_entries = (
         ConfigEntry(
-            key=CONF_DISK_TOKEN,
+            key=CONF_CLIENT_ID,
+            type=ConfigEntryType.STRING,
+            required=True,
+            label="Yandex OAuth Client ID",
+            description=(
+                "Register an application at https://oauth.yandex.ru/ with the "
+                "'cloud_api:disk.read' permission and paste its ID here."
+            ),
+            value=values.get(CONF_CLIENT_ID),
+        ),
+        ConfigEntry(
+            key=CONF_CLIENT_SECRET,
             type=ConfigEntryType.SECURE_STRING,
             required=True,
-            label="Yandex Disk OAuth token",
-            description=token_description,
-            help_link=auth.authorize_url(),
-            value=values.get(CONF_DISK_TOKEN) if values else None,
+            label="Yandex OAuth Client Secret",
+            value=values.get(CONF_CLIENT_SECRET),
+        ),
+        ConfigEntry(
+            key=CONF_ACTION_AUTH,
+            type=ConfigEntryType.ACTION,
+            label="Authorize with Yandex",
+            description=(
+                "Sign in and grant read-only access. Requires "
+                f"'{CALLBACK_REDIRECT_URL}' to be registered as a redirect "
+                "URI in your Yandex app."
+            ),
+            action=CONF_ACTION_AUTH,
+            action_label="Authorize with Yandex",
+        ),
+        ConfigEntry(
+            key=CONF_REFRESH_TOKEN,
+            type=ConfigEntryType.SECURE_STRING,
+            required=True,
+            # filled by the authorize action(s) above; hidden from the user
+            hidden=True,
+            value=values.get(CONF_REFRESH_TOKEN),
+        ),
+        # advanced fallback (variant B): paste the confirmation code shown by
+        # Yandex — no redirect URI needs to be registered
+        ConfigEntry(
+            key=CONF_AUTH_CODE,
+            type=ConfigEntryType.STRING,
+            required=False,
+            advanced=True,
+            label="Confirmation code (manual authorization)",
+            description=(
+                "Advanced: open the link, allow access, then paste the "
+                "confirmation code Yandex shows and press the manual authorize "
+                "action below."
+            ),
+            help_link=auth.manual_authorize_url(client_id) if client_id else None,
+            value=values.get(CONF_AUTH_CODE),
+        ),
+        ConfigEntry(
+            key=CONF_ACTION_AUTH_MANUAL,
+            type=ConfigEntryType.ACTION,
+            advanced=True,
+            label="Authorize with pasted code",
+            action=CONF_ACTION_AUTH_MANUAL,
+            action_label="Authorize with pasted code",
         ),
         ConfigEntry(
             key=CONF_ROOT_PATH,
             type=ConfigEntryType.STRING,
             required=False,
             default_value=DISK_ROOT,
-            value=values.get(CONF_ROOT_PATH) if values else None,
+            value=values.get(CONF_ROOT_PATH),
         ),
         CONF_ENTRY_MISSING_ALBUM_ARTIST,
         CONF_ENTRY_IGNORE_ALBUM_PLAYLISTS,
@@ -101,3 +161,40 @@ async def get_config_entries(
     if instance_id is None:
         return (CONF_ENTRY_CONTENT_TYPE, *base_entries)
     return (*base_entries, CONF_ENTRY_CONTENT_TYPE_READ_ONLY)
+
+
+async def _handle_auth_action(
+    mass: MusicAssistant,
+    instance_id: str | None,
+    action: str | None,
+    values: dict[str, ConfigValueType],
+) -> None:
+    """Run the selected authorization action, writing the refresh token in place.
+
+    :param mass: The MusicAssistant instance.
+    :param instance_id: Existing instance id (for re-fetching a masked secret).
+    :param action: The action key from the config UI.
+    :param values: The config-flow values (mutated).
+    """
+    if action not in (CONF_ACTION_AUTH, CONF_ACTION_AUTH_MANUAL):
+        return
+    client_id = str(values.get(CONF_CLIENT_ID) or "")
+    client_secret = str(values.get(CONF_CLIENT_SECRET) or "")
+    # the frontend masks a previously stored secret; fetch the real value
+    if client_secret == SECURE_STRING_SUBSTITUTE and instance_id:
+        client_secret = str(
+            mass.config.get_raw_provider_config_value(instance_id, CONF_CLIENT_SECRET) or ""
+        )
+    if not client_id or not client_secret:
+        raise LoginFailed("Enter the Yandex OAuth Client ID and Client Secret first")
+
+    if action == CONF_ACTION_AUTH and values.get("session_id"):
+        values[CONF_REFRESH_TOKEN] = await auth.authorize(
+            mass, str(values["session_id"]), client_id, client_secret
+        )
+    elif action == CONF_ACTION_AUTH_MANUAL:
+        values[CONF_REFRESH_TOKEN] = await auth.exchange_manual_code(
+            mass, str(values.get(CONF_AUTH_CODE) or ""), client_id, client_secret
+        )
+        # the one-time code must not be persisted
+        values[CONF_AUTH_CODE] = None

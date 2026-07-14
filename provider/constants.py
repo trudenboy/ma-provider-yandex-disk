@@ -2,33 +2,30 @@
 
 from typing import Final
 
-# Config keys.
-# The disk-scoped OAuth token, obtained by the user via the implicit flow
-# (``response_type=token``) and pasted into a SECURE_STRING field — the same
-# approach as the yandex_smarthome provider.
-CONF_DISK_TOKEN: Final[str] = "disk_token"
+# Config keys (mirrors the Google Drive provider: the user registers their own
+# Yandex OAuth application and enters its credentials).
+CONF_CLIENT_ID: Final[str] = "client_id"
+CONF_CLIENT_SECRET: Final[str] = "client_secret"
+CONF_REFRESH_TOKEN: Final[str] = "refresh_token"
+CONF_AUTH_CODE: Final[str] = "auth_code"
 CONF_ROOT_PATH: Final[str] = "root_path"
+
+# Config actions.
+CONF_ACTION_AUTH: Final[str] = "auth"  # variant A: browser popup + relay callback
+CONF_ACTION_AUTH_MANUAL: Final[str] = "auth_manual"  # variant B: paste a code
 
 # Yandex Disk API root and default scan root (the REST API is path-addressed).
 DISK_ROOT: Final[str] = "disk:/"
 
-# ---------------------------------------------------------------------------
-# Implicit OAuth flow (response_type=token).
-#
-# The user opens YANDEX_OAUTH_URL, Yandex returns a ``cloud_api:disk.read``
-# scoped token directly in the browser, and the user pastes it into the token
-# field. No client_secret is involved.
-#
-# DISK_OAUTH_CLIENT_ID must be the id of a Yandex OAuth application registered
-# with the "cloud_api:disk.read" permission (register once at
-# https://oauth.yandex.ru/ — the same one-app pattern yandex_smarthome uses).
-# Until it is filled, the config flow links to the app-registration page instead
-# of a broken authorize URL.
-# ---------------------------------------------------------------------------
-DISK_OAUTH_CLIENT_ID: Final[str] = ""  # TODO: id of the MA Yandex Disk OAuth app
-OAUTH_APP_REGISTER_URL: Final[str] = "https://oauth.yandex.ru/"
-YANDEX_OAUTH_URL: Final[str] = (
-    f"https://oauth.yandex.ru/authorize?response_type=token&client_id={DISK_OAUTH_CLIENT_ID}"
-    if DISK_OAUTH_CLIENT_ID
-    else OAUTH_APP_REGISTER_URL
-)
+# Yandex OAuth endpoints and the read-only Disk scope.
+OAUTH_AUTHORIZE_URL: Final[str] = "https://oauth.yandex.ru/authorize"
+OAUTH_TOKEN_URL: Final[str] = "https://oauth.yandex.ru/token"
+OAUTH_SCOPE: Final[str] = "cloud_api:disk.read"
+
+# Variant A: the fixed MA relay page (registered as a redirect URI in the user's
+# Yandex app); it forwards the OAuth ``code`` to the local callback smuggled in
+# ``state`` — the same mechanism the Google Drive provider uses.
+CALLBACK_REDIRECT_URL: Final[str] = "https://music-assistant.io/callback"
+# Variant B: Yandex shows the code on this page for the user to copy (the default
+# redirect for "API access" apps); no redirect URI needs to be registered.
+VERIFICATION_CODE_REDIRECT: Final[str] = "https://oauth.yandex.ru/verification_code"

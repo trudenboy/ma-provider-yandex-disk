@@ -1,8 +1,27 @@
 {
   "config_entries": {
-    "disk_token": {
-      "label": "Yandex Disk OAuth token",
-      "description": "Open the link, allow access, then paste the token from the page here. The token is scoped to read-only Yandex Disk access."
+    "client_id": {
+      "label": "Yandex OAuth Client ID",
+      "description": "Register an application at https://oauth.yandex.ru/ with the 'cloud_api:disk.read' permission and paste its ID here."
+    },
+    "client_secret": {
+      "label": "Yandex OAuth Client Secret"
+    },
+    "auth": {
+      "label": "Authorize with Yandex",
+      "description": "Sign in and grant Music Assistant read-only access to your Yandex Disk files.",
+      "action_label": "Authorize with Yandex"
+    },
+    "refresh_token": {
+      "label": "Refresh token"
+    },
+    "auth_code": {
+      "label": "Confirmation code (manual authorization)",
+      "description": "Advanced: open the link, allow access, then paste the confirmation code Yandex shows and press the manual authorize action."
+    },
+    "auth_manual": {
+      "label": "Authorize with pasted code",
+      "action_label": "Authorize with pasted code"
     },
     "root_path": {
       "label": "Root folder to scan",
