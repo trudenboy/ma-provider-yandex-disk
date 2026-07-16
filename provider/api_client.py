@@ -1,4 +1,5 @@
-"""Async Yandex Disk API wrapper built on the yadisk library.
+"""
+Async Yandex Disk API wrapper built on the yadisk library.
 
 Owns a yadisk ``AsyncClient`` bound to Music Assistant's shared aiohttp session
 (never closing it) and exposes the small surface the ``CloudFileSystemProvider``
@@ -44,7 +45,8 @@ class _SharedAIOHTTPSession(AIOHTTPSession):
     """AIOHTTPSession that reuses MA's shared ClientSession and never closes it."""
 
     def __init__(self, session: aiohttp.ClientSession) -> None:
-        """Wrap an existing session without taking ownership of it.
+        """
+        Wrap an existing session without taking ownership of it.
 
         :param session: Music Assistant's shared aiohttp ClientSession.
         """
@@ -56,7 +58,8 @@ class _SharedAIOHTTPSession(AIOHTTPSession):
 
 
 def _to_raw_item(resource: object) -> RawItem:
-    """Map a yadisk resource object to the base's ``RawItem`` tuple.
+    """
+    Map a yadisk resource object to the base's ``RawItem`` tuple.
 
     :param resource: A yadisk (Async)ResourceObject.
     :returns: ``(id, name, is_dir, checksum, size)`` where id is the disk path.
@@ -77,7 +80,8 @@ class YandexDiskApi:
     """Thin async facade over yadisk for the filesystem provider."""
 
     def __init__(self, mass: MusicAssistant, auth: MAYandexDiskAuth) -> None:
-        """Initialise the API wrapper.
+        """
+        Initialise the API wrapper.
 
         :param mass: The MusicAssistant instance (for its shared http session).
         :param auth: The auth helper that supplies fresh access tokens.
@@ -90,7 +94,8 @@ class YandexDiskApi:
         )
 
     async def validate(self) -> None:
-        """Verify the credentials are accepted by Yandex Disk.
+        """
+        Verify the credentials are accepted by Yandex Disk.
 
         :raises LoginFailed: The token is missing or rejected.
         :raises ProviderUnavailableError: A transient failure reaching Yandex.
@@ -105,7 +110,8 @@ class YandexDiskApi:
             raise ProviderUnavailableError(f"Yandex Disk API error: {err}") from err
 
     async def list_children(self, folder_path: str) -> list[RawItem]:
-        """List a folder's children (yadisk auto-paginates).
+        """
+        List a folder's children (yadisk auto-paginates).
 
         :param folder_path: Disk path of the folder (``disk:/...``).
         :returns: One ``RawItem`` per child.
@@ -126,7 +132,8 @@ class YandexDiskApi:
             raise ProviderUnavailableError(f"Yandex Disk API error: {err}") from err
 
     async def download_bytes(self, file_path: str) -> bytes:
-        """Download a small file's full contents (nfo/m3u/lrc/images).
+        """
+        Download a small file's full contents (nfo/m3u/lrc/images).
 
         :param file_path: Disk path of the file.
         :returns: The file contents.
@@ -142,7 +149,8 @@ class YandexDiskApi:
     async def download_response(
         self, file_path: str, headers: dict[str, str]
     ) -> aiohttp.ClientResponse:
-        """Open a streaming download for a file (fresh pre-signed href per call).
+        """
+        Open a streaming download for a file (fresh pre-signed href per call).
 
         :param file_path: Disk path of the file.
         :param headers: Request headers (may include ``Range`` for seeking).
@@ -156,7 +164,8 @@ class YandexDiskApi:
             raise ProviderUnavailableError(f"Yandex Disk stream failed: {err}") from err
 
     async def exists_dir(self, path: str) -> bool:
-        """Return True if *path* exists and is a directory.
+        """
+        Return True if *path* exists and is a directory.
 
         :param path: Disk path to check.
         :returns: Whether the path is an existing directory.

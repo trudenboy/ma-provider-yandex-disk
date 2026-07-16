@@ -1,4 +1,5 @@
-"""Yandex Disk filesystem provider.
+"""
+Yandex Disk filesystem provider.
 
 All filesystem/sync/streaming logic lives in ``CloudFileSystemProvider``; this
 module supplies only the Yandex-specific parts: the yadisk-backed API hooks,
@@ -42,7 +43,8 @@ class YandexDiskFileSystemProvider(CloudFileSystemProvider):
         manifest: ProviderManifest,
         config: ProviderConfig,
     ) -> None:
-        """Initialize the Yandex Disk provider.
+        """
+        Initialize the Yandex Disk provider.
 
         :param mass: The MusicAssistant instance.
         :param manifest: The provider manifest.
@@ -71,7 +73,8 @@ class YandexDiskFileSystemProvider(CloudFileSystemProvider):
         await self._post_init()
 
     async def unload(self, is_removed: bool = False) -> None:
-        """Unregister routes and release the API client.
+        """
+        Unregister routes and release the API client.
 
         :param is_removed: Whether the provider instance is being deleted.
         """
@@ -79,7 +82,8 @@ class YandexDiskFileSystemProvider(CloudFileSystemProvider):
         await self.api.close()
 
     async def _api_list_children(self, folder_id: str) -> list[RawItem]:
-        """List a Yandex Disk folder's children.
+        """
+        List a Yandex Disk folder's children.
 
         :param folder_id: Disk path of the folder ("" means the disk root).
         :returns: One ``RawItem`` per child.
@@ -87,7 +91,8 @@ class YandexDiskFileSystemProvider(CloudFileSystemProvider):
         return await self.api.list_children(folder_id or DISK_ROOT)
 
     async def _api_download_bytes(self, file_id: str) -> bytes:
-        """Download a small file's full contents.
+        """
+        Download a small file's full contents.
 
         :param file_id: Disk path of the file.
         :returns: The file contents.
@@ -97,7 +102,8 @@ class YandexDiskFileSystemProvider(CloudFileSystemProvider):
     async def _api_download_response(
         self, file_id: str, headers: dict[str, str]
     ) -> aiohttp.ClientResponse:
-        """Open a streaming download, forwarding any Range header.
+        """
+        Open a streaming download, forwarding any Range header.
 
         :param file_id: Disk path of the file.
         :param headers: Request headers (may include ``Range``).

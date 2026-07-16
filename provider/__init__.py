@@ -44,7 +44,8 @@ if TYPE_CHECKING:
 async def setup(
     mass: MusicAssistant, manifest: ProviderManifest, config: ProviderConfig
 ) -> ProviderInstanceType:
-    """Initialize a provider instance from its configuration.
+    """
+    Initialize a provider instance from its configuration.
 
     :param mass: The MusicAssistant instance.
     :param manifest: The provider manifest.
@@ -62,7 +63,8 @@ async def get_config_entries(
     action: str | None = None,
     values: dict[str, ConfigValueType] | None = None,
 ) -> tuple[ConfigEntry, ...]:
-    """Return the config entries for this provider.
+    """
+    Return the config entries for this provider.
 
     :param mass: The MusicAssistant instance.
     :param instance_id: Existing instance id (None on first setup).
@@ -81,18 +83,12 @@ async def get_config_entries(
             key=CONF_CLIENT_ID,
             type=ConfigEntryType.STRING,
             required=True,
-            label="Yandex OAuth Client ID",
-            description=(
-                "Register an application at https://oauth.yandex.ru/ with the "
-                "'cloud_api:disk.read' permission and paste its ID here."
-            ),
             value=values.get(CONF_CLIENT_ID),
         ),
         ConfigEntry(
             key=CONF_CLIENT_SECRET,
             type=ConfigEntryType.SECURE_STRING,
             required=True,
-            label="Yandex OAuth Client Secret",
             value=values.get(CONF_CLIENT_SECRET),
         ),
         # paste the confirmation code shown by Yandex — no redirect URI needed
@@ -100,20 +96,13 @@ async def get_config_entries(
             key=CONF_AUTH_CODE,
             type=ConfigEntryType.STRING,
             required=False,
-            label="Confirmation code",
-            description=(
-                "Open the link, allow access, then paste the confirmation code "
-                "Yandex shows and press Authorize below."
-            ),
             help_link=auth.manual_authorize_url(client_id) if client_id else None,
             value=values.get(CONF_AUTH_CODE),
         ),
         ConfigEntry(
             key=CONF_ACTION_AUTH,
             type=ConfigEntryType.ACTION,
-            label="Authorize with the pasted code",
             action=CONF_ACTION_AUTH,
-            action_label="Authorize",
         ),
         ConfigEntry(
             key=CONF_REFRESH_TOKEN,
@@ -151,7 +140,8 @@ async def _handle_auth_action(
     action: str | None,
     values: dict[str, ConfigValueType],
 ) -> None:
-    """Exchange the pasted code for a refresh token, writing it in place.
+    """
+    Exchange the pasted code for a refresh token, writing it in place.
 
     :param mass: The MusicAssistant instance.
     :param instance_id: Existing instance id (for re-fetching a masked secret).

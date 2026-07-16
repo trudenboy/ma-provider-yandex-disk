@@ -1,4 +1,5 @@
-"""Integration test: raw Yandex Disk listings map through the cloud base.
+"""
+Integration test: raw Yandex Disk listings map through the cloud base.
 
 Exercises the real ``CloudFileSystemProvider._scandir`` path (normalize ->
 resolve id -> _api_list_children -> _to_item) against the provider's hook, so a
@@ -13,7 +14,6 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
-
 from provider.provider import YandexDiskFileSystemProvider
 
 _FIXTURE = Path(__file__).parent / "fixtures" / "listdir_music.json"
