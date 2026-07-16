@@ -6,6 +6,7 @@ from typing import Any, cast
 
 import pytest
 from music_assistant_models.errors import LoginFailed
+
 from provider.api_client import YandexDiskApi, _to_raw_item
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 import pytest
+
 from provider import get_config_entries
 from provider.constants import (
     CONF_ACTION_AUTH,

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Self, cast
 import aiohttp
 import pytest
 from music_assistant_models.errors import LoginFailed, ProviderUnavailableError
+
 from provider import auth
 from provider.constants import OAUTH_AUTHORIZE_URL
 

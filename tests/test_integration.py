@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
+
 from provider.provider import YandexDiskFileSystemProvider
 
 _FIXTURE = Path(__file__).parent / "fixtures" / "listdir_music.json"
