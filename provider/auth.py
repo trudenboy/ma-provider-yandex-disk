@@ -1,4 +1,5 @@
-"""OAuth glue between Music Assistant and the Yandex Disk REST API.
+"""
+OAuth glue between Music Assistant and the Yandex Disk REST API.
 
 Mirrors the Google Drive provider's token handling, using Yandex's
 confirmation-code flow: the user registers their own Yandex OAuth application
@@ -32,7 +33,8 @@ if TYPE_CHECKING:
 
 
 def manual_authorize_url(client_id: str) -> str:
-    """Build the authorize URL the user opens to obtain a confirmation code.
+    """
+    Build the authorize URL the user opens to obtain a confirmation code.
 
     :param client_id: The user's Yandex OAuth client id.
     :returns: The URL that shows a confirmation code on Yandex's page.
@@ -49,7 +51,8 @@ def manual_authorize_url(client_id: str) -> str:
 async def exchange_manual_code(
     mass: MusicAssistant, code: str, client_id: str, client_secret: str
 ) -> str:
-    """Exchange a pasted confirmation code for a refresh token.
+    """
+    Exchange a pasted confirmation code for a refresh token.
 
     :param mass: The MusicAssistant instance.
     :param code: The confirmation code copied from Yandex's verification page.
@@ -89,7 +92,8 @@ class MAYandexDiskAuth:
         client_secret: str,
         refresh_token: str,
     ) -> None:
-        """Initialise the auth helper.
+        """
+        Initialise the auth helper.
 
         :param mass: The MusicAssistant instance.
         :param client_id: The user's Yandex OAuth client id.
@@ -104,7 +108,8 @@ class MAYandexDiskAuth:
         self._expires_at: float = 0.0
 
     async def async_get_access_token(self) -> str:
-        """Return a valid access token, refreshing it if needed.
+        """
+        Return a valid access token, refreshing it if needed.
 
         :returns: A currently-valid disk-scoped access token.
         :raises LoginFailed: No refresh token, or it was rejected.

@@ -11,7 +11,8 @@ _PROVIDER_PKG = "music_assistant.providers.filesystem_yandex_disk"
 
 
 def _alias_working_tree_provider(provider_dir: Path) -> None:
-    """Alias the ``provider`` working-tree package onto the upstream import path.
+    """
+    Alias the ``provider`` working-tree package onto the upstream import path.
 
     In the provider-repo layout, tests must exercise the working tree, not the
     provider snapshot baked into the venv's music_assistant install. In the

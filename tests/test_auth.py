@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import aiohttp
 import pytest
 from music_assistant_models.errors import LoginFailed, ProviderUnavailableError
-
 from provider import auth
 from provider.constants import OAUTH_AUTHORIZE_URL
 
@@ -22,7 +21,7 @@ class _FakeResp:
         self.status = status
         self._payload = payload
 
-    async def __aenter__(self) -> _FakeResp:
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, *exc: object) -> bool:
