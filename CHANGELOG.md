@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- docs(site): rewrite the user documentation — full OAuth setup guide, accurate known-issues list, new feature pages (browse & library sync, streaming & seeking, authorization) and English translations of all user-facing pages.
 - refactor(config): drop the hardcoded `ConfigEntry` label/description/action_label duplicates from `get_config_entries` — the texts already live in `provider/strings.json`, which is now the single source (upstream `check_config_entries` compliance).
 - fix(tests): `_FakeResp.__aenter__` returns `Self` (PYI034), per the upstream dev ruff rules.
 - style: ruff 0.15 safe autofixes matching the upstream dev lint rules.
