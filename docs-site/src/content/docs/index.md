@@ -21,7 +21,7 @@ description: Документация провайдера Yandex Disk для Mu
 
 
 
-Music Assistant поддерживает [Yandex Disk](https://360.yandex.ru/disk/) — музыкальный стриминговый сервис.
+Music Assistant поддерживает [Яндекс Диск](https://360.yandex.ru/disk/) — облачное хранилище файлов: провайдер стримит и синхронизирует вашу личную коллекцию музыки, аудиокниг и подкастов, хранящуюся на Диске.
 Провайдер создан и поддерживается [TrudenBoy](https://github.com/TrudenBoy).
 
 
@@ -36,10 +36,10 @@ Music Assistant поддерживает [Yandex Disk](https://360.yandex.ru/dis
 | Функция | Поддержка |
 |:--------|:---------:|
 | [Просмотр каталога (Browse)](features/browse/) | ✅ |
-| Синхронизация библиотеки | ✅ |
-| Стриминг с перемоткой (seek) | ✅ |
+| [Синхронизация библиотеки](features/browse/) | ✅ |
+| [Стриминг с перемоткой (seek)](features/streaming/) | ✅ |
 | Максимальное качество | Source quality (файлы как есть) |
-| Способ входа | OAuth своё приложение Яндекс (код подтверждения, cloud_api:disk.read, авто-refresh) |
+| [Способ входа](features/auth/) | OAuth своё приложение Яндекс (код подтверждения, cloud_api:disk.read, авто-refresh) |
 
 
 
