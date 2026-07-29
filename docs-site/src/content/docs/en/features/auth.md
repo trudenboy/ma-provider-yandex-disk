@@ -8,12 +8,12 @@ The provider authenticates through **your own** Yandex OAuth application
 with a single permission — read-only Disk access (`cloud_api:disk.read`).
 This is the same model the built-in Google Drive provider uses.
 
-## Confirmation-code flow
+## Device Flow
 
-No redirect URI needs to be registered: the application uses Yandex's
-standard confirmation-code page. You follow the link from the setup form,
-allow access, copy the code Yandex shows and paste it back — the provider
-exchanges the code for an access/refresh token pair.
+Press **Sign in with Yandex** in the setup form. Music Assistant hosts a page
+with a short code and a link to Yandex. Enter that code on Yandex and approve
+access; the provider receives the access/refresh token pair automatically.
+There is no manual `auth_code` field.
 
 ## Token refresh
 

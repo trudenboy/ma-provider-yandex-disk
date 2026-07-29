@@ -39,7 +39,7 @@ Music Assistant поддерживает [Яндекс Диск](https://360.yan
 | [Синхронизация библиотеки](features/browse/) | ✅ |
 | [Стриминг с перемоткой (seek)](features/streaming/) | ✅ |
 | Максимальное качество | Source quality (файлы как есть) |
-| [Способ входа](features/auth/) | OAuth своё приложение Яндекс (код подтверждения, cloud_api:disk.read, авто-refresh) |
+| [Способ входа](features/auth/) | Своё OAuth-приложение Яндекса (Device Flow, cloud_api:disk.read, авто-refresh) |
 
 
 

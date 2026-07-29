@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-29
+
+### Added
+
+- Official Yandex OAuth Device Flow through the shared `ya-passport-auth`
+  Music Assistant integration, including the hosted confirmation page and a
+  visible connected/not-connected status.
+
+### Changed
+
+- Replaced the placeholder provider artwork with the official Yandex Disk icon
+  and moved the provider stage to `alpha` while the new authentication flow is
+  validated upstream.
+- Removed the manual `auth_code` field and authorization-code exchange.
+- Token refresh now uses the provider-neutral `refresh_oauth_tokens` helper;
+  OAuth application creation remains an explicit user step and is not part of
+  the production flow.
+- Rotated refresh tokens are persisted immediately in encrypted provider
+  configuration, so they survive a Music Assistant restart.
+
 ## [0.1.1] - 2026-07-17
 
 ### Changed

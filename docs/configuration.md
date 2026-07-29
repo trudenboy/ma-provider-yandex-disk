@@ -3,26 +3,24 @@
 Authentication follows the built-in Google Drive provider's token model: you
 register your own Yandex OAuth application and authorize Music Assistant against
 it. Music Assistant then keeps the access token fresh automatically via the
-refresh token. No redirect URI needs to be registered — Yandex shows a
-confirmation code that you paste in.
+refresh token. Authorization uses Yandex's official Device Flow: Music Assistant
+shows a short code and opens the Yandex confirmation page. Nothing needs to be
+copied back into the provider form.
 
 ## 1. Register a Yandex OAuth application (one-time)
 
-1. Go to <https://oauth.yandex.ru/> and create an application ("for API access").
+1. Go to <https://oauth.yandex.ru/> and create an application.
 2. Under **Data access**, add the permission **`cloud_api:disk.read`**.
 3. Copy the application's **ClientID** and **Client secret**.
-
-The redirect URI stays at Yandex's default (`https://oauth.yandex.ru/verification_code`);
-you don't need to configure it.
 
 ## 2. Add the provider
 
 1. In Music Assistant: **Settings → Providers → Add Provider → Yandex Disk**.
 2. Paste the **Client ID** and **Client Secret**.
-3. Click the link on the **Confirmation code** field, allow access, and copy the
-   code Yandex shows.
-4. Paste that code into the **Confirmation code** field and press **Authorize**.
-   The provider exchanges it for a refresh token and stores it automatically.
+3. Press **Sign in with Yandex**. Music Assistant opens its authorization page.
+4. Copy the short code, continue to Yandex, enter the code, and allow access.
+   The popup reports success and Music Assistant stores the refresh token
+   automatically. The form then shows **Authentication status: connected**.
 5. Set **Root folder to scan** (e.g. `disk:/Music`; `disk:/` scans everything).
 6. Choose the **Content type** (music / audiobooks / podcasts) — first-setup only.
 
