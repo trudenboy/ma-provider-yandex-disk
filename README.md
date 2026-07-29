@@ -21,7 +21,7 @@ Provider that streams and syncs your personal music files stored on **Yandex Dis
 
 - Просмотр каталога (Browse) и синхронизация библиотеки: треки, альбомы, исполнители, плейлисты.
 - Стриминг с перемоткой (HTTP Range / seek).
-- Авторизация как в Google Drive: своё OAuth-приложение Яндекса (`cloud_api:disk.read`) + код подтверждения (redirect URI не нужен) и авто-refresh токена. Работает на бесплатных аккаунтах.
+- Авторизация через своё OAuth-приложение Яндекса (`cloud_api:disk.read`) и официальный Device Flow: короткий код вводится на странице Яндекса, вручную переносить `auth_code` обратно в Music Assistant не нужно. Токен обновляется автоматически.
 - Настраиваемая корневая папка (например, `disk:/Music`).
 
 ## Установка / Installation

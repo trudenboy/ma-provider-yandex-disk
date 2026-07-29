@@ -53,8 +53,8 @@ revoked on [Yandex's access management page](https://id.yandex.ru/security)
 or the application itself was deleted. As long as access is not revoked, the
 token refreshes automatically and no re-authorization is needed.
 
-**Solution:** re-authorize in the provider settings — follow the link, get a
-new confirmation code and press **Authorize**.
+**Solution:** re-authorize in the provider settings with **Sign in with
+Yandex**, then enter the new Device Flow code on Yandex's page.
 
 ---
 

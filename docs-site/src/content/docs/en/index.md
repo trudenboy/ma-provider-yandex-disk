@@ -39,7 +39,7 @@ Created and maintained by [TrudenBoy](https://github.com/TrudenBoy).
 | [Library sync](features/browse/) | ✅ |
 | [Streaming with seek](features/streaming/) | ✅ |
 | Max quality | Source quality (files as-is) |
-| [Sign-in method](features/auth/) | Your own Yandex OAuth app (confirmation code, cloud_api:disk.read, auto-refresh) |
+| [Sign-in method](features/auth/) | Your own Yandex OAuth app (Device Flow, cloud_api:disk.read, auto-refresh) |
 
 
 
