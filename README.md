@@ -21,9 +21,9 @@ Provider that streams and syncs your personal music files stored on **Yandex Dis
 
 - Просмотр каталога (Browse) и синхронизация библиотеки: треки, альбомы, исполнители, плейлисты.
 - Стриминг с перемоткой (HTTP Range / seek).
-- Авторизация через своё OAuth-приложение Яндекса (`cloud_api:disk.read`) и официальный Device Flow: короткий код вводится на странице Яндекса, вручную переносить `auth_code` обратно в Music Assistant не нужно. Токен обновляется автоматически.
+- Пошаговая авторизация через своё OAuth-приложение Яндекса (`cloud_api:disk.read`) и официальный Device Flow: Music Assistant показывает ссылку и короткий код, автоматически ожидает подтверждения и сохраняет refresh token. Ручного поля `auth_code` больше нет.
 - Настраиваемая корневая папка (например, `disk:/Music`).
 
 ## Установка / Installation
 
-See the [documentation site](https://trudenboy.github.io/ma-provider-yandex-disk/) for setup and configuration.
+See the [configuration guide](docs/configuration.md) for OAuth application setup and the guided login flow.

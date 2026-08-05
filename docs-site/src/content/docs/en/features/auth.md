@@ -10,15 +10,17 @@ This is the same model the built-in Google Drive provider uses.
 
 ## Device Flow
 
-Press **Sign in with Yandex** in the setup form. Music Assistant hosts a page
-with a short code and a link to Yandex. Enter that code on Yandex and approve
-access; the provider receives the access/refresh token pair automatically.
-There is no manual `auth_code` field.
+After submitting the setup form, Music Assistant displays a short code and the
+Yandex verification URL. Enter the code on Yandex and approve access; the flow
+detects confirmation and completes automatically. Expired codes are replaced
+in place. There is no manual `auth_code` field or separate authentication
+status to save.
 
 ## Token refresh
 
-The access token is refreshed automatically via the refresh token;
-re-authorization is only needed if the application's access is revoked or
+The access token is refreshed automatically via the refresh token. If Yandex
+rotates the refresh token, the replacement is immediately persisted in
+encrypted setup data. Re-authorization is only needed if access is revoked or
 the application itself is deleted.
 
 ## Read-only

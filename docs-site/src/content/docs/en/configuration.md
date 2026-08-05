@@ -2,12 +2,11 @@
 title: Configuration
 ---
 
-Authentication follows the built-in Google Drive provider's token model: you
+Authentication uses Music Assistant's guided cloud-provider setup: you
 register your **own** Yandex OAuth application and authorize Music Assistant
-against it. Music Assistant then keeps the access token fresh automatically
-via the refresh token. No redirect URI needs to be registered — Yandex shows
-a short Device Flow code that you enter on Yandex's page. Nothing is pasted
-back into the provider form.
+against it. Music Assistant shows Yandex's Device Flow URL and short code,
+waits for confirmation and stores the refresh token automatically. Nothing is
+pasted back into the provider form and there is no separate Save step.
 
 ## 1. Register a Yandex OAuth application (one-time)
 
@@ -19,15 +18,17 @@ back into the provider form.
 
 1. In Music Assistant: **Settings → Providers → Add Provider → Yandex Disk**.
 2. Paste the **Client ID** and **Client Secret**.
-3. Press **Sign in with Yandex**. Music Assistant opens a page with a short
-   code and a button leading to Yandex.
-4. Enter the code on Yandex and allow access. Music Assistant receives and
-   stores the refresh token automatically; the form shows
-   **Authentication status: connected**.
-5. Set **Root folder to scan** (e.g. `disk:/Music`; `disk:/` scans
-   everything).
-6. Choose the **Content type** (music / audiobooks / podcasts) — first-setup
-   only.
+3. Choose the **Content type** (music / audiobooks / podcasts).
+4. Set **Root folder to scan**. Use a path such as `disk:/Music`, or keep
+   `root` to scan everything.
+5. Continue. Music Assistant displays a short code and the Yandex verification
+   URL.
+6. Open the URL, enter the code and allow access. Music Assistant detects the
+   confirmation and completes setup automatically. An expired code is replaced
+   without sending you back to the form.
+
+When reconfiguring, leave **Client Secret** blank to reuse the securely stored
+secret.
 
 ## Why your own app?
 
@@ -47,7 +48,8 @@ seeking works even in long audiobooks.
 ## Notes
 
 - The provider is **read-only**; it never writes to your Yandex Disk.
-- The access token is refreshed automatically; you only re-authorize if you
+- The access token is refreshed automatically and rotated refresh tokens are
+  immediately saved in encrypted setup data. You only re-authorize if you
   revoke access or delete the app.
 - Folder listings are cached for 5 minutes; library syncs always fetch fresh
   listings. Change detection uses each file's `md5`.
