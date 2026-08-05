@@ -5,7 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - Unreleased
+
+### Changed
+
+- Replaced the legacy configuration action with Music Assistant's guided
+  `SetupSession` flow. The provider now displays the Yandex verification URL and
+  device code, polls for confirmation, refreshes expired codes automatically and
+  completes setup without a manual `auth_code` or separate authentication status.
+- Moved OAuth credentials, refresh token, content type and scan root into
+  encrypted provider `setup_data`, with legacy config-value read-through for
+  existing installations.
+- Implemented the Yandex OAuth Device Flow and token refresh locally with the
+  shared Music Assistant HTTP session, removing the unused `ya-passport-auth`
+  dependency from this provider.
+- Renamed the scan-root setup key to the cloud-provider standard `folder_id`;
+  `root` selects the complete Yandex Disk and paths such as `disk:/Music` select
+  a subfolder.
+- Provider configuration now contains only runtime library-sync options, and the
+  manifest links to Music Assistant's filesystem-provider documentation.
 
 ## [0.2.0] - 2026-07-29
 
