@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-08-05
+
+### Fixed
+
+- Made provider tests compatible with Music Assistant's upstream import-path
+  rewrite and removed an upstream-unknown pytest marker.
+
 ## [1.0.0] - 2026-08-05
 
 ### Changed
