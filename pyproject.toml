@@ -6,7 +6,7 @@ requires-python = ">=3.14"
 dynamic = ["version"]
 dependencies = [
   "yadisk==3.4.1",
-  "ya-passport-auth[ma]==1.7.0",
+  "ya-passport-auth[ma]==1.8.0",
 ]
 
 [project.optional-dependencies]
