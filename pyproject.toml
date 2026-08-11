@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 dynamic = ["version"]
 dependencies = [
   "yadisk==3.4.1",
+  "ya-passport-auth[ma]==1.7.0",
 ]
 
 [project.optional-dependencies]
@@ -16,7 +17,6 @@ test = [
   "pytest-cov>=7.0",
   "syrupy>=5.0",
   "codespell>=2.4",
-  "hass-client>=1.2.3",
   "music-assistant @ git+https://github.com/music-assistant/server.git@dev",
   "ruff>=0.15,<0.16",
   "mypy>=1.19",
@@ -47,7 +47,7 @@ filterwarnings = [
 
 [tool.codespell]
 # >>> ma-provider-tools sync (codespell skip) — DO NOT EDIT >>>
-skip = "*.js,*.svg,NOTICE,docs-site/package-lock.json"
+skip = "*.js,*.svg,.github/pr-review/standards.md,NOTICE,docs-site/package-lock.json"
 # <<< ma-provider-tools sync (codespell skip) <<<
 ignore-words-list = "provid,hass,nam,"
 
