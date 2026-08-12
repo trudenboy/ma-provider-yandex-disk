@@ -12,7 +12,7 @@ def _install_hass_client_stub() -> None:
         return
 
     package = types.ModuleType("hass_client")
-    package.__path__ = []  # type: ignore[attr-defined]
+    package.__path__ = []
     package.HomeAssistantClient = object  # type: ignore[attr-defined]
 
     exceptions = types.ModuleType("hass_client.exceptions")
