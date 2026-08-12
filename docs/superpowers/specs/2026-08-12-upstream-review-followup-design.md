@@ -45,16 +45,17 @@ contains four focused changes:
 
 The lifecycle test mocks only external boundaries: Yandex OAuth, Yandex Disk
 network access, and Music Assistant services that are outside the provider.
-It must fail before the new lifecycle coverage is introduced and pass without
-modifying production behavior.
+It exercises existing production behavior without requiring a production-code
+change; the new assertion is validated with a deliberate mutation check before
+the final passing run.
 
 ## Official Documentation
 
 The documentation draft PR targets `beta` in
-`music-assistant/music-assistant.io`. It adds:
-
-- `src/content/docs/music-providers/yandex-disk.md`;
-- an alphabetically placed `Yandex Disk` sidebar item in `astro.config.mjs`.
+`music-assistant/music-assistant.io`. It adds
+`src/content/docs/music-providers/yandex-disk.md`. The current Music Sources
+sidebar is generated automatically from that directory, so no sidebar
+configuration change is required.
 
 Following the reviewed final form of documentation PR #626, the page is
 user-focused. It explains supported media, read-only behavior, creating a
