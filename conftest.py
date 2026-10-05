@@ -1,4 +1,4 @@
-"""Test-only compatibility shims for the standalone provider environment."""
+"""Root conftest: standalone-only test shims, kept out of the upstream tests/ export."""
 
 from __future__ import annotations
 
