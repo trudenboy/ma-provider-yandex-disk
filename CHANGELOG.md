@@ -5,15 +5,6 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.6] - 2026-10-05
-
-### Fixed
-
-- The provider's options page shows the library sync options again; they were
-  defined where the current Music Assistant server no longer looks for them.
-- Simultaneous requests after the access token expires share one token refresh,
-  so a rotated refresh token can no longer be overwritten by a parallel refresh.
-
 ## [1.0.5] - 2026-10-05
 
 ### Fixed
@@ -26,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   response is reported as a provider error instead of crashing.
 - Setup ends after 15 minutes even while an activation code is still valid, and
   token polling respects Yandex's interval from the first request.
+- The provider's options page shows the library sync options again; they were
+  defined where the current Music Assistant server no longer looks for them.
+- Simultaneous requests after the access token expires share one token refresh,
+  so a rotated refresh token can no longer be overwritten by a parallel refresh.
 
 ## [1.0.4] - 2026-08-28
 
