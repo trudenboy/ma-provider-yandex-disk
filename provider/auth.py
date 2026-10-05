@@ -200,11 +200,13 @@ async def refresh_oauth_tokens(
         raise ProviderUnavailableError("Yandex OAuth is temporarily unavailable") from err
 
     error = payload.get("error")
+    if error is not None and not isinstance(error, str):
+        raise ProviderUnavailableError("Yandex OAuth returned an invalid response")
     if error == "invalid_grant":
         raise LoginFailed("Yandex Disk authorization was revoked or expired")
     if error in _REJECTED_CLIENT_ERRORS:
         raise LoginFailed(f"Yandex rejected the OAuth application credentials ({error})")
-    if isinstance(error, str):
+    if error is not None:
         raise ProviderUnavailableError("Yandex OAuth returned a temporary error")
     try:
         return _parse_tokens(payload)

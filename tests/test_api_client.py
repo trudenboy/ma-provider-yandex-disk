@@ -133,7 +133,5 @@ async def test_download_response_disables_total_timeout() -> None:
     assert result == "response"
     timeout = calls[0]["timeout"]
     assert isinstance(timeout, aiohttp.ClientTimeout)
-    assert timeout.total is None
-    assert timeout.sock_read is not None
-    assert timeout.sock_connect is not None
+    assert timeout == aiohttp.ClientTimeout(total=None, connect=30, sock_connect=30, sock_read=60)
     assert calls[0]["headers"] == {"Range": "bytes=0-"}

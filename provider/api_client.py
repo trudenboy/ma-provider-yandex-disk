@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 # fields requested per resource to keep listings slim
 _FIELDS = ("name", "path", "type", "size", "md5", "modified")
 # streams last as long as playback, so only connect and idle-read are bounded
-_STREAM_TIMEOUT = aiohttp.ClientTimeout(total=None, sock_connect=30, sock_read=60)
+_STREAM_TIMEOUT = aiohttp.ClientTimeout(total=None, connect=30, sock_connect=30, sock_read=60)
 
 
 class _SharedAIOHTTPSession(AIOHTTPSession):

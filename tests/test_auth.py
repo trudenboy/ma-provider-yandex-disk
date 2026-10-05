@@ -231,6 +231,16 @@ async def test_auth_refresh_rejected_application_is_login_failed(error: str) -> 
 
 
 @pytest.mark.asyncio
+async def test_auth_refresh_non_string_error_is_provider_unavailable() -> None:
+    """A malformed error field is a provider error, never a TypeError."""
+    session = _FakeSession(_FakeResponse(400, {"error": []}))
+    helper = MAYandexDiskAuth(_mass(session), "client-id", "secret", "refresh")
+
+    with pytest.raises(ProviderUnavailableError):
+        await helper.async_get_access_token()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response",
     [

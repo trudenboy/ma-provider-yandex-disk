@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   replaced, instead of always being treated as unchanged.
 - Long streams such as audiobooks are no longer cut off after five minutes.
 - Rejected OAuth application credentials now ask for reauthorization instead of
-  leaving the provider retrying indefinitely.
-- An abandoned setup stops requesting new activation codes after 15 minutes, and
+  leaving the provider retrying indefinitely, and a malformed OAuth error
+  response is reported as a provider error instead of crashing.
+- Setup ends after 15 minutes even while an activation code is still valid, and
   token polling respects Yandex's interval from the first request.
 
 ## [1.0.4] - 2026-08-28

@@ -275,7 +275,36 @@ async def test_device_code_renewal_stops_after_overall_deadline() -> None:
     ):
         await setup_flow._authorize(session, "client-id", "client-secret")
 
+    request.assert_not_awaited()
+
+
+async def test_overall_deadline_interrupts_pending_device_login() -> None:
+    """A still-valid device code cannot keep the login open past the overall budget."""
+
+    async def finish(_session: SetupSession, _values: dict[str, Any]) -> dict[str, str]:
+        raise AssertionError("finish must not be called")
+
+    session, _mass = _make_session(finish)
+    request = mock.AsyncMock(return_value=_grant())
+    poll = mock.AsyncMock(return_value=DevicePollState.PENDING)
+    started = time.monotonic()
+    started_wall = time.time()
+    with (
+        mock.patch.object(setup_flow, "request_device_code", request),
+        mock.patch.object(setup_flow, "poll_device_token", poll),
+        mock.patch.object(setup_flow, "AUTHORIZATION_TIMEOUT", 0.2),
+        pytest.raises(StepExpiredError),
+    ):
+        # a regression would wait out the 300 s device code; fail fast instead
+        async with asyncio.timeout(5):
+            await setup_flow._authorize(session, "client-id", "client-secret")
+
+    assert time.monotonic() - started < 2
     assert request.await_count == 1
+    assert session.current_step is not None
+    # the published countdown is capped by the budget, not the 300 s device code
+    assert session.current_step.expires_at is not None
+    assert session.current_step.expires_at <= started_wall + 1
 
 
 async def test_poll_slow_down_increases_interval() -> None:
