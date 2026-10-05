@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-10-05
+
+### Fixed
+
+- Files that Yandex Disk reports without an MD5 hash are rescanned after being
+  replaced, instead of always being treated as unchanged.
+- Long streams such as audiobooks are no longer cut off after five minutes.
+- Rejected OAuth application credentials now ask for reauthorization instead of
+  leaving the provider retrying indefinitely.
+- An abandoned setup stops requesting new activation codes after 15 minutes, and
+  token polling respects Yandex's interval from the first request.
+
 ## [1.0.4] - 2026-08-28
 
 ### Fixed
