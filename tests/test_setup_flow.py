@@ -350,7 +350,8 @@ async def test_oauth_error_returns_to_form_with_base_error(
         await _wait_for(lambda: mass.signal_event.call_count >= 2)
         assert session.current_step is not None
         assert session.current_step.type == FlowStepType.FORM
-        assert session.current_step.errors == {"base": translation_key}
+        assert set(session.current_step.errors) == {"base"}
+        assert session.current_step.error_translations["base"].key == translation_key
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task
