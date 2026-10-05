@@ -93,7 +93,8 @@ player → GET {base_url}/{instance_id}_stream?path=...
 
 ## Data Model
 
-`RawItem = tuple[str, str, bool, str, int | None]` = `(id, name, is_dir, checksum, size)`.
+`RawItem = tuple[str, str, bool, str, int | None, str | None]` =
+`(id, name, is_dir, checksum, size, metadata_token)`.
 For Yandex Disk the path-addressed API means **id = the resource path**
 (`disk:/...`). Mapping from a yadisk resource:
 
@@ -102,8 +103,14 @@ For Yandex Disk the path-addressed API means **id = the resource path**
 | `path`                | id           | `disk:/...` |
 | `name`                | name         | slashes → `_` by the base |
 | `type == "dir"`       | is_dir       | |
-| `md5` (files)         | checksum     | `""` for dirs, `"unknown"` if missing |
+| `md5` (files)         | checksum     | `""` for dirs; falls back to `modified` if missing |
 | `size` (files)        | size         | `None` for dirs |
+| `modified`            | metadata_token | `None` if missing |
+
+The cloud filesystem scanner detects changed audio files by `checksum` alone
+(`metadata_token` only covers metadata files such as NFO and images), so a
+file without `md5` must not get a constant checksum or a replacement at the
+same path would never be rescanned.
 
 `FileSystemItem.absolute_path` for files is MA's proxy URL
 `{base_url}/{instance_id}_stream?path=<relative_path>` (set by the base's
