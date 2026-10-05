@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   response is reported as a provider error instead of crashing.
 - Setup ends after 15 minutes even while an activation code is still valid, and
   token polling respects Yandex's interval from the first request.
+- The provider's options page shows the library sync options again; they were
+  defined where the current Music Assistant server no longer looks for them.
+- Simultaneous requests after the access token expires share one token refresh,
+  so a rotated refresh token can no longer be overwritten by a parallel refresh.
 
 ## [1.0.4] - 2026-08-28
 
