@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The authorization step now shows the activation code as text with a button
   that opens the Yandex verification page, so it can be read by screen readers
   and opened on another device.
+- The Client ID and Client secret setup fields now explain step by step how to
+  create the Yandex OAuth app and where to find both values.
 
 ### Fixed
 
