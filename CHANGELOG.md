@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2026-10-06
+
+### Changed
+
+- The authorization step now shows the activation code as text with a button
+  that opens the Yandex verification page, so it can be read by screen readers
+  and opened on another device.
+- The Client ID and Client secret setup fields now explain step by step how to
+  create the Yandex OAuth app and where to find both values.
+
+### Fixed
+
+- A timed-out download of a metadata file or stream is reported as a temporary
+  provider error instead of an unexpected exception.
+- Download errors no longer include the pre-signed Yandex download link in error
+  messages or logs.
+
 ## [1.0.7] - 2026-10-06
 
 ### Fixed
