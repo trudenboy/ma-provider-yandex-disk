@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.10] - 2026-10-06
+
+### Removed
+
+- Sound effects are no longer offered when setting up Yandex Disk, because cloud
+  playback does not support them yet. Existing sound-effects instances must be
+  reconfigured to use music, audiobooks or podcasts.
+
+### Fixed
+
+- A device-login code that Yandex reports as invalid or expired is replaced
+  automatically, so authorization can continue without returning to the setup form.
+
 ## [1.0.9] - 2026-10-06
 
 ### Changed
