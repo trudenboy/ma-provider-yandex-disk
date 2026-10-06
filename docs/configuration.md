@@ -44,6 +44,9 @@ seeking works even in long audiobooks.
 ## Notes
 
 - The provider is **read-only**; it never writes to your Yandex Disk.
+- Only music, audiobooks and podcasts are supported. Sound effects are unavailable
+  until cloud playback supports them; reconfigure any existing sound-effects
+  instance to one of the supported content types.
 - The access token is refreshed automatically. Rotated refresh tokens are saved
   immediately in encrypted setup data; you only re-authorize if access is
   revoked or the OAuth application is deleted.
