@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-10-06
+
+### Removed
+
+- Dropped the fallback that read the scan folder from the pre-1.0.0 `root_path`
+  setting. Music Assistant no longer passes that value to the provider, so the
+  fallback never took effect; instances created before 1.0.0 need to be set up
+  again.
+
 ## [1.0.5] - 2026-10-05
 
 ### Fixed
