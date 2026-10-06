@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The activation code on the authorization step is shown on its own line in
   bold monospace, so it stands out from the instructions and is easy to select.
 
+### Fixed
+
+- When Yandex Disk asks to pause requests for longer than a minute, scans and
+  metadata reads now report a temporary provider outage instead of failing with
+  an unhandled rate-limit error.
+
 ## [1.0.8] - 2026-10-06
 
 ### Changed
