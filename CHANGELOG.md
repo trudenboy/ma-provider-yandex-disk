@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2026-10-06
+
+### Fixed
+
+- A malformed response from Yandex OAuth while refreshing the access token is
+  now reported as a temporary provider error, so Music Assistant retries instead
+  of failing with an unexpected exception.
+- Requests to the Yandex Disk API are rate limited and pause after a "too many
+  requests" response, so large library scans no longer disrupt playback.
+
 ## [1.0.6] - 2026-10-06
 
 ### Removed
